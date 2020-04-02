@@ -14,16 +14,16 @@ class BasicBlock(nn.Module):
         super(BasicBlock, self).__init__()
         self.bn1 = nn.BatchNorm2d(in_planes)
         self.relu1 = nn.ReLU(inplace=True)
-        self.conv1 = nn.Conv2d(in_planes, out_planes, kernel_size=3, stride=stride,
-                               padding=1, bias=False)
+        self.conv1 = nn.Conv2d(in_planes, out_planes, kernel_size=3, stride=stride, padding=1, bias=False)
         self.bn2 = nn.BatchNorm2d(out_planes)
         self.relu2 = nn.ReLU(inplace=True)
-        self.conv2 = nn.Conv2d(out_planes, out_planes, kernel_size=3, stride=1,
-                               padding=1, bias=False)
+        self.conv2 = nn.Conv2d(out_planes, out_planes, kernel_size=3, stride=1, padding=1, bias=False)
         self.droprate = dropRate
         self.equalInOut = (in_planes == out_planes)
-        self.convShortcut = (not self.equalInOut) and nn.Conv2d(in_planes, out_planes, kernel_size=1, stride=stride,
-                               padding=0, bias=False) or None
+        if not self.equalInOut:
+            self.convShortcut = nn.Conv2d(in_planes, out_planes, kernel_size=1, stride=stride, padding=0, bias=False) 
+        else:
+            self.convShortcut = None
 
     def forward(self, x):
         if not self.equalInOut:
@@ -85,13 +85,10 @@ class WideResNet(nn.Module):
 
     def forward(self, x):
         out = self.conv1(x)
-        out = self.block1(out)
-        activation1 = out
-        out = self.block2(out)
-        activation2 = out
-        out = self.block3(out)
-        activation3 = out
-        out = self.relu(self.bn1(out))
+        activation1 = self.block1(out)
+        activation2 = self.block2(activation1)
+        activation3 = self.block3(activation2)
+        out = self.relu(self.bn1(activation3))
         out = F.avg_pool2d(out, 8)
         out = out.view(-1, self.nChannels)
         return self.fc(out), activation1, activation2, activation3
