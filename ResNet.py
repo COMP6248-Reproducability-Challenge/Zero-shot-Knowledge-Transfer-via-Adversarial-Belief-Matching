@@ -94,15 +94,19 @@ class WideResNet(nn.Module):
         return self.fc(out), activation1, activation2, activation3
 
 
-def runResNet(train_data, validation_data, test_data, batch_size, num_classes, num_epochs, loss_function, optimiser, metrics):
-    model_teacher = WideResNet(depth=40, num_classes=num_classes, widen_factor=2, dropRate=0.0)
+def runResNet(model, train_data, test_data, batch_size, num_epochs, loss_function, optimiser, metrics, validation_data=None):
+    device = "cuda:0" if torch.cuda.is_available() else "cpu"
 
     train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True)
-    validation_loader = DataLoader(validation_data, batch_size=batch_size, shuffle=True)
+    if validation_data is not None:
+        validation_loader = DataLoader(validation_data, batch_size=batch_size, shuffle=True)
     test_loader = DataLoader(test_data, batch_size=batch_size, shuffle=True)
 
     trial = Trial(model, optimiser, loss_function, metrics=metrics).to(device)
-    trial.with_generators(train_loader, val_generator=validation_loader, test_generator=test_loader)
+    if validation_data is None:
+        trial.with_generators(train_loader, test_generator=test_loader)
+    else:
+        trial.with_generators(train_loader, val_generator=validation_loader, test_generator=test_loader)
     trial.run(epochs=num_epochs)
 
 
