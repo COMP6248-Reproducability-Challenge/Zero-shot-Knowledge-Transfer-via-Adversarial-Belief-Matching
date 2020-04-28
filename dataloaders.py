@@ -17,5 +17,8 @@ def transform_data():
     trainloader = DataLoader(trainset, batch_size=128, shuffle=True)
     testloader = DataLoader(testset, batch_size=128, shuffle=True)
 
-
     return trainloader, testloader
+
+
+def get_loaders():
+    pass
