@@ -1,0 +1,93 @@
+import logging
+import numpy as np
+import torch
+from tqdm import tqdm
+from utils import KL_AT_loss
+from WRN_temp import WideResNet
+from torch import optim
+from dataloaders import get_loaders
+
+class FewShotKT:
+
+    def __init__(self, dataloader, student_model, teacher_model, log_num):
+
+        self.student_optimizer = torch.optim.SGD(momentum=0.9, nesterov=True)
+        self.trainloader, self.testloader = get_loaders('cifar10')
+        self.device = "cuda:0" if torch.cuda.is_available() else "cpu"
+        self.scheduler = optim.lr_scheduler.MultiStepLR(self.student_optimizer, milestones=[60, 120, 160], gamma=0.2)
+
+
+        strides = [1, 1, 2, 2]
+        self.teacher_model = WideResNet(d=2, k=40, n_classes=10, input_features=3,
+                                 output_features=16, strides=strides)
+        self.teacher_model = self.teacher_model.to(self.device)
+        torch_checkpoint = torch.load('wrn-16-1-seed-0-dict.pth', map_location=self.device)
+        self.teacher_model.load_state_dict(torch_checkpoint)
+
+        self.student_model = WideResNet(d=1, k=16, n_classes=10, input_features=3,
+                                 output_features=16, strides=strides)
+        self.student_model = self.student_model.to(self.device)
+        # Load teacher and initialise student network
+
+        self.log_num = log_num
+        self.num_epochs = self.calculate_epochs()
+
+
+
+    def train_KT_AT(self):
+        """
+
+        """
+
+        # summary for current training loop and a running average object for loss
+        # Use tqdm for progress bar
+
+        self.teacher_model.eval()
+        for epoch in tqdm(range(self.num_epochs)):
+            self.train()
+
+            if epoch % self.log_num == 0:
+                self.test()
+
+    def train(self):
+
+        for i, (train_batch, labels_batch) in enumerate(self.trainloader):
+            self.student_optimizer.zero_grad()
+
+            # move to GPU if available
+            train_batch, labels_batch = train_batch.to(self.device), labels_batch.to(self.device)
+
+            # compute model output, fetch teacher/student output, and compute KD loss
+            student_logits, *student_activations = self.student_model(train_batch)
+            teacher_logits, *teacher_activations = self.teacher_model(train_batch)
+
+            # teacher/student outputs: logits, attention1, attention2, attention3
+
+            loss = KL_AT_loss(teacher_logits, student_logits, student_activations, teacher_activations, labels_batch)
+
+            acc = self.accuracy()
+
+            loss.backward()
+
+            # performs updates using calculated gradients
+            self.student_optimizer.step()
+
+    def test(self):
+        pass
+
+    def accuracy(self):
+        return 0
+
+    def calculate_epochs(self):
+        return 0
+
+    def save_model(self):
+        pass
+
+
+
+if __name__ == '__main__':
+    # fix random seed for reproducibility
+    seed = 7
+    torch.manual_seed(seed)
+    torch.backends.cudnn.deterministic = True
