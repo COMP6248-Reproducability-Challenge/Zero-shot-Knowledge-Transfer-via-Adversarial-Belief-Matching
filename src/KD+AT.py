@@ -9,19 +9,18 @@ from dataloaders import get_loaders
 
 class FewShotKT:
 
-    def __init__(self, dataloader, student_model, teacher_model, log_num):
+    def __init__(self, M, dataset_name):
 
-        self.student_optimizer = torch.optim.SGD(momentum=0.9, nesterov=True)
-        self.trainloader, self.testloader = get_loaders('cifar10')
+
+        self.M = M
+        self.dataset_name = dataset_name
+        self.trainloader, self.testloader = get_loaders(self.dataset_name, self.M)
         self.device = "cuda:0" if torch.cuda.is_available() else "cpu"
-        self.scheduler = optim.lr_scheduler.MultiStepLR(self.student_optimizer, milestones=[60, 120, 160], gamma=0.2)
-
-
         strides = [1, 1, 2, 2]
         self.teacher_model = WideResNet(d=2, k=40, n_classes=10, input_features=3,
                                  output_features=16, strides=strides)
         self.teacher_model = self.teacher_model.to(self.device)
-        torch_checkpoint = torch.load('wrn-16-1-seed-0-dict.pth', map_location=self.device)
+        torch_checkpoint = torch.load('wrn-40-2-seed-0-dict.pth', map_location=self.device)
         self.teacher_model.load_state_dict(torch_checkpoint)
 
         self.student_model = WideResNet(d=1, k=16, n_classes=10, input_features=3,
@@ -29,7 +28,10 @@ class FewShotKT:
         self.student_model = self.student_model.to(self.device)
         # Load teacher and initialise student network
 
-        self.log_num = log_num
+        self.student_optimizer = torch.optim.SGD(self.student_model.parameters(), momentum=0.9, nesterov=True)
+        self.scheduler = optim.lr_scheduler.MultiStepLR(self.student_optimizer, milestones=[60, 120, 160], gamma=0.2)
+
+        self.log_num = 10
         self.num_epochs = self.calculate_epochs()
 
 
@@ -79,7 +81,8 @@ class FewShotKT:
         return 0
 
     def calculate_epochs(self):
-        return 0
+        if self.dataset_name == 'cifar10':
+            self.num_epochs = int(200 * (5000/self.M))
 
     def save_model(self):
         pass
@@ -88,6 +91,10 @@ class FewShotKT:
 
 if __name__ == '__main__':
     # fix random seed for reproducibility
-    seed = 7
-    torch.manual_seed(seed)
-    torch.backends.cudnn.deterministic = True
+    #seed = 7
+    #torch.manual_seed(seed)
+
+    kd_at = FewShotKT(10, 'cifar10')
+    kd_at.train()
+
+

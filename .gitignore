@@ -1,2 +1,5 @@
 
 .idea
+/src/cifar-10-batches-py/
+
+*.gz
