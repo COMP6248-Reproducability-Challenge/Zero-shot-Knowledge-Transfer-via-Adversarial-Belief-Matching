@@ -17,7 +17,7 @@ class FewShotKT:
         self.trainloader, self.testloader = get_loaders(self.dataset_name, self.M)
         self.device = "cuda:0" if torch.cuda.is_available() else "cpu"
         strides = [1, 1, 2, 2]
-        self.teacher_model = WideResNet(d=2, k=40, n_classes=10, input_features=3,
+        self.teacher_model = WideResNet(d=40, k=2, n_classes=10, input_features=3,
                                  output_features=16, strides=strides)
         self.teacher_model = self.teacher_model.to(self.device)
         torch_checkpoint = torch.load('wrn-40-2-seed-0-dict.pth', map_location=self.device)
@@ -26,9 +26,10 @@ class FewShotKT:
         self.student_model = WideResNet(d=1, k=16, n_classes=10, input_features=3,
                                  output_features=16, strides=strides)
         self.student_model = self.student_model.to(self.device)
+        self.student_model.train()
         # Load teacher and initialise student network
 
-        self.student_optimizer = torch.optim.SGD(self.student_model.parameters(), momentum=0.9, nesterov=True)
+        self.student_optimizer = torch.optim.SGD(self.student_model.parameters(), lr=0.1, momentum=0.9, nesterov=True)
         self.scheduler = optim.lr_scheduler.MultiStepLR(self.student_optimizer, milestones=[60, 120, 160], gamma=0.2)
 
         self.log_num = 10
@@ -53,10 +54,11 @@ class FewShotKT:
 
     def train(self):
 
-        for i, (train_batch, labels_batch) in enumerate(self.trainloader):
+        for i, input in enumerate(self.trainloader):
             self.student_optimizer.zero_grad()
 
             # move to GPU if available
+            train_batch, labels_batch = input
             train_batch, labels_batch = train_batch.to(self.device), labels_batch.to(self.device)
 
             # compute model output, fetch teacher/student output, and compute KD loss
