@@ -13,7 +13,7 @@ def KL_AT_loss(student_logits, teacher_logits,student_activations, teacher_activ
     cross_entropy = F.cross_entropy(student_logits, labels)
 
     attention_loss = 0
-    for x in range(student_activations):
+    for x in range(len(student_activations)):
         attention_loss += attention_diff(student_activations[x], teacher_activations[x])
 
     adjusted_beta = (beta * 3) / len(student_activations)

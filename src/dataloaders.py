@@ -68,13 +68,6 @@ def downsample(dataset, M):
     return data_subset
 
 
-
-
-
-
-
-
-
 def get_loaders(dataset, M):
 
     if dataset.lower() == 'cifar10':

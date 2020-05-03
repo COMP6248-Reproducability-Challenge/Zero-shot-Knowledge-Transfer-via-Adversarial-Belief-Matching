@@ -23,7 +23,7 @@ class FewShotKT:
         torch_checkpoint = torch.load('wrn-40-2-seed-0-dict.pth', map_location=self.device)
         self.teacher_model.load_state_dict(torch_checkpoint)
 
-        self.student_model = WideResNet(d=1, k=16, n_classes=10, input_features=3,
+        self.student_model = WideResNet(d=16, k=1, n_classes=10, input_features=3,
                                  output_features=16, strides=strides)
         self.student_model = self.student_model.to(self.device)
         self.student_model.train()
@@ -54,7 +54,7 @@ class FewShotKT:
 
     def train(self):
 
-        for i, input in enumerate(self.trainloader):
+        for i, input in enumerate(tqdm(self.trainloader)):
             self.student_optimizer.zero_grad()
 
             # move to GPU if available
@@ -76,6 +76,8 @@ class FewShotKT:
             # performs updates using calculated gradients
             self.student_optimizer.step()
 
+        print("finished")
+
     def test(self):
         pass
 
@@ -96,7 +98,7 @@ if __name__ == '__main__':
     #seed = 7
     #torch.manual_seed(seed)
 
-    kd_at = FewShotKT(10, 'cifar10')
+    kd_at = FewShotKT(200, 'cifar10')
     kd_at.train()
 
 
