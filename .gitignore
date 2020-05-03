@@ -1,2 +1,7 @@
 
 .idea
+/src/cifar-10-batches-py/
+
+*.gz
+
+src/__pycache__/
