@@ -10,7 +10,7 @@ from torch.utils.data import DataLoader
 from torchbearer import Trial
 
 class BasicBlock(nn.Module):
-    def __init__(self, in_planes, out_planes, stride, dropRate=0.0):
+    def __init__(self, in_planes, out_planes, stride, dropRate=0.0, noTeacher=True):
         super(BasicBlock, self).__init__()
         self.bn1 = nn.BatchNorm2d(in_planes)
         self.relu1 = nn.ReLU(inplace=True)
@@ -25,6 +25,8 @@ class BasicBlock(nn.Module):
         else:
             self.convShortcut = None
 
+        self.noTeacher = noTeacher
+
     def forward(self, x):
         if not self.equalInOut:
             x = self.relu1(self.bn1(x))
@@ -34,7 +36,10 @@ class BasicBlock(nn.Module):
         if self.droprate > 0:
             out = F.dropout(out, p=self.droprate, training=self.training)
         out = self.conv2(out)
-        return torch.add(x if self.equalInOut else self.convShortcut(x), out)
+        if not self.noTeacher:
+            return torch.add(x if self.equalInOut else self.convShortcut(x), out)
+        else:
+            return out
 
 class NetworkBlock(nn.Module):
     def __init__(self, nb_layers, in_planes, out_planes, block, stride, dropRate=0.0):
@@ -51,7 +56,7 @@ class NetworkBlock(nn.Module):
         return self.layer(x)
 
 class WideResNet(nn.Module):
-    def __init__(self, depth, num_classes, widen_factor=1, dropRate=0.0):
+    def __init__(self, depth, num_classes, widen_factor=1, dropRate=0.0, noTeacher=True):
         super(WideResNet, self).__init__()
         nChannels = [16, 16*widen_factor, 32*widen_factor, 64*widen_factor]
         assert((depth - 4) % 6 == 0)
@@ -81,7 +86,8 @@ class WideResNet(nn.Module):
                 m.bias.data.zero_()
             elif isinstance(m, nn.Linear):
                 m.bias.data.zero_()
-
+        
+        self.noTeacher = noTeacher
 
     def forward(self, x):
         out = self.conv1(x)
@@ -91,13 +97,17 @@ class WideResNet(nn.Module):
         out = self.relu(self.bn1(activation3))
         out = F.avg_pool2d(out, 8)
         out = out.view(-1, self.nChannels)
-        return self.fc(out), activation1, activation2, activation3
+        if not self.noTeacher:
+            return self.fc(out), activation1, activation2, activation3
+        else:
+            return self.fc(out)
 
 
 def runResNet(model, train_data, test_data, batch_size, num_epochs, loss_function, optimiser, metrics, validation_data=None):
     device = "cuda:0" if torch.cuda.is_available() else "cpu"
-
+    
     train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True)
+    
     if validation_data is not None:
         validation_loader = DataLoader(validation_data, batch_size=batch_size, shuffle=True)
     test_loader = DataLoader(test_data, batch_size=batch_size, shuffle=True)
@@ -107,6 +117,7 @@ def runResNet(model, train_data, test_data, batch_size, num_epochs, loss_functio
         trial.with_generators(train_loader, test_generator=test_loader)
     else:
         trial.with_generators(train_loader, val_generator=validation_loader, test_generator=test_loader)
+    
     trial.run(epochs=num_epochs)
 
 
