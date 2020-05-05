@@ -54,7 +54,7 @@ class FewShotKT:
 
     def train(self):
 
-        for i, input in enumerate(tqdm(self.trainloader)):
+        for i, input in enumerate(self.trainloader):
             self.student_optimizer.zero_grad()
 
             # move to GPU if available
@@ -85,8 +85,10 @@ class FewShotKT:
         return 0
 
     def calculate_epochs(self):
+        num_epochs = 0
         if self.dataset_name == 'cifar10':
-            self.num_epochs = int(200 * (5000/self.M))
+            num_epochs = int(200 * (5000 / self.M))
+        return num_epochs
 
     def save_model(self):
         pass
@@ -99,6 +101,6 @@ if __name__ == '__main__':
     #torch.manual_seed(seed)
 
     kd_at = FewShotKT(200, 'cifar10')
-    kd_at.train()
+    kd_at.train_KT_AT()
 
 
