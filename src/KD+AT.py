@@ -81,8 +81,27 @@ class FewShotKT:
     def test(self):
         pass
 
-    def accuracy(self):
-        return 0
+    def accuracy(self, nn, device, test_data) -> float:
+        with torch.no_grad:
+            correct = total = 0
+            nn.eval()
+
+            # data -> images and labels tuples
+            for data in test_data:
+                images, labels = data
+
+                images = images.to(device)
+                labels = labels.to(device)
+
+                outputs = nn(images)[0]
+
+                predicted = max(outputs.data, 1)
+
+                total += labels.size(0)
+                correct += (predicted == labels).sun().item()
+            
+            return correct/total
+
 
     def calculate_epochs(self):
         if self.dataset_name == 'cifar10':
