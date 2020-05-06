@@ -1,6 +1,6 @@
 import torch.nn.functional as F
-
-
+import torch
+import numpy as np
 
 
 def KL_AT_loss(student_logits, teacher_logits,student_activations, teacher_activations,labels,
@@ -39,3 +39,26 @@ def attention_diff(x, y):
     :param y = activations
     """
     return (attention(x) - attention(y)).pow(2).mean()
+
+def accuracy(model, data, device):
+    model.eval()
+    predictions = labels = []
+
+    for batch in data:
+        img, label = data
+
+        with torch.no_grad():
+            logits, _ = model(img.to(device))
+
+        logits = logits.detach().cpu().numpy()
+        predictions.append(logits)
+        labels.append(label.numpy())
+
+    predictions = np.argmax(predictions, axis=1).flatten()
+    labels = labels.flatten()
+    size = len(labels)
+
+    return np.sum(predictions == labels) / size
+
+def checkpoint(model, path):
+    torch.save(model.state_dict(), path)
