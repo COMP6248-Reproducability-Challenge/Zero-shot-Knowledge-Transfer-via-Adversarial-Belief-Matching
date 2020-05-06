@@ -2,7 +2,7 @@ import logging
 import numpy as np
 import torch
 from tqdm import tqdm
-from utils import KL_AT_loss
+from utils import KL_AT_loss, accuracy
 from WRN_temp import WideResNet
 from torch import optim
 from dataloaders import get_loaders
@@ -49,7 +49,7 @@ class FewShotKT:
         for epoch in tqdm(range(self.num_epochs)):
             self.train()
 
-            if epoch % self.log_num == 0:
+            if epoch % self.log_num == 2:
                 self.test()
 
     def train(self):
@@ -69,7 +69,9 @@ class FewShotKT:
 
             loss = KL_AT_loss(teacher_logits, student_logits, student_activations, teacher_activations, labels_batch)
 
-            acc = self.accuracy()
+            acc = accuracy(self.student_model, self.testloader, self.device)
+            print(f'Current accuracy is {acc}')
+            
 
             loss.backward()
 
@@ -81,26 +83,26 @@ class FewShotKT:
     def test(self):
         pass
 
-    def accuracy(self, nn, device, test_data) -> float:
-        with torch.no_grad:
-            correct = total = 0
-            nn.eval()
-
-            # data -> images and labels tuples
-            for data in test_data:
-                images, labels = data
-
-                images = images.to(device)
-                labels = labels.to(device)
-
-                outputs = nn(images)[0]
-
-                predicted = max(outputs.data, 1)
-
-                total += labels.size(0)
-                correct += (predicted == labels).sun().item()
-            
-            return correct/total
+    # def accuracy(self, nn, device, test_data) -> float:
+    #     with torch.no_grad:
+    #         correct = total = 0
+    #         nn.eval()
+    #
+    #         # data -> images and labels tuples
+    #         for data in test_data:
+    #             images, labels = data
+    #
+    #             images = images.to(device)
+    #             labels = labels.to(device)
+    #
+    #             outputs = nn(images)[0]
+    #
+    #             predicted = max(outputs.data, 1)
+    #
+    #             total += labels.size(0)
+    #             correct += (predicted == labels).sun().item()
+    #
+    #         return correct/total
 
 
     def calculate_epochs(self):
