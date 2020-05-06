@@ -44,12 +44,10 @@ def accuracy(model, data, device):
     model.eval()
     predictions = labels = []
 
-    for batch in data:
-        img, label = data
-
+    for img, label in data:
         with torch.no_grad():
-            logits, _ = model(img.to(device))
-
+            logits = model(img.to(device))
+        
         logits = logits.detach().cpu().numpy()
         predictions.append(logits)
         labels.append(label.numpy())
