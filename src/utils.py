@@ -1,6 +1,9 @@
 import torch.nn.functional as F
 import torch
 import numpy as np
+from torch.utils.data import TensorDataset, random_split, DataLoader
+import torchvision.transforms as transforms
+import torchvision
 
 
 def KL_AT_loss(student_logits, teacher_logits,student_activations, teacher_activations,labels,
@@ -24,6 +27,15 @@ def KL_AT_loss(student_logits, teacher_logits,student_activations, teacher_activ
 
     return loss
 
+
+def KL_Loss(student_logits, teacher_logits, temperature =1.0):
+
+    kl_loss = F.kl_div(F.log_softmax(student_logits / temperature, dim=1),
+                          F.softmax(teacher_logits / temperature, dim=1))
+
+    return kl_loss
+
+
 def attention(x):
     """
     Taken from https://github.com/szagoruyko/attention-transfer
@@ -45,16 +57,16 @@ def accuracy(model, data, device):
     labels = []
     predictions = []
 
-    for inx, item in enumerate(data):
+    for img, label in data:
         with torch.no_grad():
-            img, label = item
             logits = model(img.to(device))[0]
-        
+
         logits = logits.detach().cpu().numpy()
         predictions.append(logits)
-        labels.append(label.numpy())
+        labels.append(label)
 
-
+    predictions = np.array(predictions)
+    labels = np.array(labels)
     predictions = np.argmax(predictions, axis=1).flatten()
     labels = labels.flatten()
     size = len(labels)
@@ -62,5 +74,4 @@ def accuracy(model, data, device):
     return np.sum(predictions == labels) / size
 
 def checkpoint(model, path):
-
     torch.save(model.state_dict(), path)

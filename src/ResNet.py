@@ -21,7 +21,7 @@ class BasicBlock(nn.Module):
         self.droprate = dropRate
         self.equalInOut = (in_planes == out_planes)
         if not self.equalInOut:
-            self.convShortcut = nn.Conv2d(in_planes, out_planes, kernel_size=1, stride=stride, padding=0, bias=False) 
+            self.convShortcut = nn.Conv2d(in_planes, out_planes, kernel_size=1, stride=stride, padding=0, bias=False)
         else:
             self.convShortcut = None
 
@@ -86,7 +86,7 @@ class WideResNet(nn.Module):
                 m.bias.data.zero_()
             elif isinstance(m, nn.Linear):
                 m.bias.data.zero_()
-        
+
         self.noTeacher = noTeacher
 
     def forward(self, x):
@@ -101,27 +101,3 @@ class WideResNet(nn.Module):
             return self.fc(out), activation1, activation2, activation3
         else:
             return self.fc(out)
-
-
-def runResNet(model, train_data, test_data, batch_size, num_epochs, loss_function, optimiser, metrics, validation_data=None):
-    device = "cuda:0" if torch.cuda.is_available() else "cpu"
-    
-    train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True)
-    
-    if validation_data is not None:
-        validation_loader = DataLoader(validation_data, batch_size=batch_size, shuffle=True)
-    test_loader = DataLoader(test_data, batch_size=batch_size, shuffle=True)
-
-    trial = Trial(model, optimiser, loss_function, metrics=metrics).to(device)
-    if validation_data is None:
-        trial.with_generators(train_loader, test_generator=test_loader)
-    else:
-        trial.with_generators(train_loader, val_generator=validation_loader, test_generator=test_loader)
-    
-    trial.run(epochs=num_epochs)
-
-
-
-
-
-

@@ -8,7 +8,7 @@ import torch.nn.functional as F
 # "We use a generic generator with only three convolutional layers"
 class Generator(nn.Module):
 
-    def __init__(self, x):
+    def __init__(self):
         super(Generator, self).__init__()
         self.activation = nn.LeakyReLU(0.2, inplace=True)
         self.layers = nn.Sequential(
@@ -25,8 +25,16 @@ class Generator(nn.Module):
         )
 
     def forward(self, x):
-        return self.layers(x)
-    
+        """
+            - generate gaussian noise
+            - feed the noise to layers
+            - that returns noised based x
+        """
+        z = nn.Linear(100, 128*64).view(-1, 128,8,8) # not sure this is how you introduce noise TODO: check noise function
+        z = self.layers(x)
+
+        return z
+
     def print_shape(self, x):
         """
         For debugging purposes

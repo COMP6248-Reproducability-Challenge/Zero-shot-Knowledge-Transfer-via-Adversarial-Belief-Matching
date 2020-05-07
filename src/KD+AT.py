@@ -49,7 +49,7 @@ class FewShotKT:
         for epoch in tqdm(range(self.num_epochs)):
             self.train()
 
-            if epoch % self.log_num == 2:
+            if epoch % self.log_num == 0:
                 self.test()
 
     def train(self):
@@ -69,25 +69,21 @@ class FewShotKT:
 
             loss = KL_AT_loss(teacher_logits, student_logits, student_activations, teacher_activations, labels_batch)
 
+
             acc = accuracy(self.student_model, self.testloader, self.device)
             print(f'Current accuracy is {acc}')
-            
 
             loss.backward()
 
             # performs updates using calculated gradients
             self.student_optimizer.step()
 
+
+
         print("finished")
 
     def test(self):
         pass
-
-
-    """
-        use accuracy from utils.py
-    """
-
 
     def calculate_epochs(self):
         num_epochs = 0
