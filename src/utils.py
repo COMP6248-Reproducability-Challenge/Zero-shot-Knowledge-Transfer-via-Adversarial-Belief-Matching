@@ -5,6 +5,10 @@ from torch.utils.data import TensorDataset, random_split, DataLoader
 import torchvision.transforms as transforms
 import torchvision
 
+def setup_seeds():
+    np.random.seed(0)
+    torch.manual_seed(0)
+    torch.backends.cudnn.deterministic = True
 
 def KL_AT_loss(student_logits, teacher_logits,student_activations, teacher_activations,labels,
                temperature =1.0, alpha=0.9, beta=1000):
