@@ -93,13 +93,3 @@ class FewShotKT:
 
     def save_model(self):
         pass
-
-
-
-if __name__ == '__main__':
-    # fix random seed for reproducibility
-    #seed = 7
-    #torch.manual_seed(seed)
-
-    kd_at = FewShotKT(100, 'cifar10')
-    kd_at.train_KT_AT()

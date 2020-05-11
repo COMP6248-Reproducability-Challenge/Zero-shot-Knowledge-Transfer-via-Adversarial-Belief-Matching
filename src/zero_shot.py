@@ -5,7 +5,7 @@ from tqdm import tqdm
 from utils import KL_AT_loss, accuracy, KL_Loss
 from WRN_temp import WideResNet
 from torch import optim
-from dataloaders import get_loaders
+from dataloaders import transform_data
 import Generator
 
 class ZeroShot:
@@ -14,7 +14,7 @@ class ZeroShot:
         self.ns = 10
         self.total_batches = 65000
         self.dataset_name = dataset_name
-        _ , self.testloader = get_loaders(self.dataset_name, self.M)
+        _, self.testloader, _, _ = transform_data(self.dataset_name, self.M)
 
         self.device = "cuda:0" if torch.cuda.is_available() else "cpu"
         strides = [1, 1, 2, 2]
@@ -112,12 +112,5 @@ class ZeroShot:
 
     def save_model(self):
         pass
-
-
-
-if __name__ == '__main__':
-    # fix random seed for reproducibility
-    #seed = 7
-    #torch.manual_seed(seed)
-    kd_at = ZeroShot(100, 'cifar10')
-    kd_at.train_ZS()
+    
+    
