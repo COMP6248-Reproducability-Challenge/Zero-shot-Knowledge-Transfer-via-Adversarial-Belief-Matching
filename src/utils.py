@@ -66,7 +66,7 @@ def accuracy(model, data, device):
         labels.append(label)
 
     predictions = np.array(predictions)
-    labels = np.array(labels)
+    labels = np.array([x.numpy() for x in labels])
     predictions = np.argmax(predictions, axis=1).flatten()
     labels = labels.flatten()
     size = len(labels)

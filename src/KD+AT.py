@@ -5,7 +5,7 @@ from tqdm import tqdm
 from utils import KL_AT_loss, accuracy
 from WRN_temp import WideResNet
 from torch import optim
-from dataloaders import get_loaders
+from dataloaders import transform_data
 
 class FewShotKT:
 
@@ -14,7 +14,7 @@ class FewShotKT:
 
         self.M = M
         self.dataset_name = dataset_name
-        self.trainloader, self.testloader = get_loaders(self.dataset_name, self.M)
+        self.trainloader, self.testloader, self.validationloader, _ = transform_data(self.dataset_name, self.M)
         self.device = "cuda:0" if torch.cuda.is_available() else "cpu"
         strides = [1, 1, 2, 2]
         self.teacher_model = WideResNet(d=40, k=2, n_classes=10, input_features=3,
@@ -101,5 +101,5 @@ if __name__ == '__main__':
     #seed = 7
     #torch.manual_seed(seed)
 
-    kd_at = FewShotKT(200, 'cifar10')
+    kd_at = FewShotKT(100, 'cifar10')
     kd_at.train_KT_AT()

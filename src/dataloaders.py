@@ -1,7 +1,10 @@
+import torchvision
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader,Subset
 from torchvision.datasets import CIFAR10
 from torchvision.datasets import SVHN
+import torch
+from torch.utils.data.dataset import random_split
 
 def transform_data(dataset, M= 0, train_batch_size= 128, test_batch_size= 10, validation= False, down= False):
     trainset, testset = load_data(dataset)
@@ -21,7 +24,7 @@ def transform_data(dataset, M= 0, train_batch_size= 128, test_batch_size= 10, va
         train_size = int(0.9 * size)
         val_size = size-train_size
         trainset, valset = random_split(trainset, [train_size, val_size])
-        validation_loader = DataLoader(validation_data, batch_size= test_batch_size, shuffle=True)
+        validation_loader = DataLoader(valset, batch_size= test_batch_size, shuffle=True)
 
     # create data loaders
     trainloader = DataLoader(trainset, batch_size= train_batch_size, shuffle=True)
@@ -54,7 +57,7 @@ def load_data(dataset):
         return trainset, testset
 
     elif dataset.lower() == 'SVHN':
-        transfrom = transforms.Compose([
+        transform = transforms.Compose([
             transforms.ToTensor(),
             transforms.Normalize((0.4377, 0.4438, 0.4728), (0.1980, 0.2010, 0.1970))
         ])
