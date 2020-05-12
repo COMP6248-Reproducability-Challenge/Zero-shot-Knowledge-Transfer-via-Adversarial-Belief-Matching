@@ -14,7 +14,7 @@ def transform_data(dataset, M= 0, train_batch_size= 128, test_batch_size= 10, va
 
     if down:
         trainset = downsample(trainset, M)
-        testset = downsample(testset, M)
+        #testset = downsample(testset, M)
 
     num_classes = len(trainset.classes)
     validation_loader = None
