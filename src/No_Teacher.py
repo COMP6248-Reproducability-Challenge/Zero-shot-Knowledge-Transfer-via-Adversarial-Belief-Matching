@@ -9,7 +9,9 @@ device = "cuda:0" if torch.cuda.is_available() else "cpu"
 def No_teacher(dataset):
     train_loader, test_loader, validation_loader, num_classes = dataloaders.transform_data(dataset)
     
-    model = ResNet.WideResNet(depth= 40, num_classes= num_classes, widen_factor= 2, dropRate= 0.0, noTeacher= True)
+    strides = [1, 2, 2]
+    model = ResNet.WideResNet(depth=40, num_classes=num_classes, widen_factor=2, input_features=3,
+                        output_features=16, dropRate=0.0, strides=strides, noTeacher=True)
 
     optimiser = torch.optim.SGD(model.parameters(), lr=0.1, momentum=0.9, nesterov=True, weight_decay=5e-4)
     loss_function = torch.nn.CrossEntropyLoss()

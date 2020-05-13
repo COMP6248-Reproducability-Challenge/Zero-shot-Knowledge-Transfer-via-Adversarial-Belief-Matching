@@ -3,7 +3,7 @@ import numpy as np
 import torch
 from tqdm import tqdm
 from utils import KL_AT_loss, accuracy
-from WRN_temp import WideResNet
+import ResNet
 from torch import optim
 from dataloaders import transform_data
 
@@ -16,17 +16,17 @@ class FewShotKT:
         self.dataset_name = dataset_name
         self.trainloader, self.testloader, self.validationloader, self.num_classes = transform_data(self.dataset_name, self.M)
         self.device = "cuda:0" if torch.cuda.is_available() else "cpu"
-        strides = [1, 1, 2, 2]
+        strides = [1, 2, 2]
         
-        self.teacher_model = WideResNet(d=40, k=2, n_classes=self.num_classes, input_features=3,
-                                 output_features=16, strides=strides)
+        self.teacher_model = ResNet.WideResNet(depth=40, num_classes=self.num_classes, widen_factor=2, input_features=3,
+                    output_features=16,dropRate=0.0, strides=strides)
         self.teacher_model = self.teacher_model.to(self.device)
-        torch_checkpoint = torch.load('../PreTrainedModels/wrn-40-2.pth', map_location=self.device)
-        self.teacher_model.load_state_dict(torch_checkpoint)
+        torch_checkpoint = torch.load('../PreTrainedModels/cifar10-no_teacher-wrn-40-2-0.0-seed0.pth', map_location=self.device)
+        self.teacher_model.load_state_dict(torch_checkpoint['model_state_dict'])
         print(f"Teacher accuracy: {accuracy(self.teacher_model, self.testloader, self.device)}")
 
-        self.student_model = WideResNet(d=16, k=1, n_classes=self.num_classes, input_features=3,
-                                 output_features=16, strides=strides)
+        self.student_model = ResNet.WideResNet(depth=16, num_classes=self.num_classes, widen_factor=1, input_features=3,
+                                 output_features=16,dropRate=0.0, strides=strides)
         self.student_model = self.student_model.to(self.device)
         self.student_model.train()
         # Load teacher and initialise student network

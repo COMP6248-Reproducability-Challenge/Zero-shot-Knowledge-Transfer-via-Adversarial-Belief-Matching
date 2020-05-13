@@ -3,7 +3,7 @@ import numpy as np
 import torch
 from tqdm import tqdm
 from utils import KL_AT_loss, accuracy, KL_Loss
-from WRN_temp import WideResNet
+import ResNet
 from torch import optim
 from dataloaders import transform_data
 import Generator
@@ -18,14 +18,14 @@ class ZeroShot:
 
         self.device = "cuda:0" if torch.cuda.is_available() else "cpu"
         strides = [1, 1, 2, 2]
-        self.teacher_model = WideResNet(d=40, k=2, n_classes=10, input_features=3,
-                                 output_features=16, strides=strides)
+        self.teacher_model = ResNet.WideResNet(depth=40, num_classes=self.num_classes, widen_factor=2, input_features=3,
+                                 output_features=16, dropRate=0.0, strides=strides)
         self.teacher_model = self.teacher_model.to(self.device)
         torch_checkpoint = torch.load('wrn-40-2-seed-0-dict.pth', map_location=self.device)
         self.teacher_model.load_state_dict(torch_checkpoint)
 
-        self.student_model = WideResNet(d=16, k=1, n_classes=10, input_features=3,
-                                 output_features=16, strides=strides)
+        self.student_model = ResNet.WideResNet(depth=16, num_classes=self.num_classes, widen_factor=1, input_features=3,
+                                 output_features=16, dropRate=0.0, strides=strides)
         self.student_model = self.student_model.to(self.device)
         self.student_model.train()
 
