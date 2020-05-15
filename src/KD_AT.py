@@ -2,7 +2,7 @@ import logging
 import numpy as np
 import torch
 from tqdm import tqdm
-from utils import KL_AT_loss, accuracy
+from utils import KL_AT_loss, accuracy, log_accuracy, plot_accuracy
 import ResNet
 from torch import optim
 from dataloaders import transform_data
@@ -14,7 +14,7 @@ class FewShotKT:
         self.trainloader, self.testloader, self.validationloader, self.num_classes = transform_data(self.dataset_name, self.M)
         self.device = "cuda:0" if torch.cuda.is_available() else "cpu"
         strides = [1, 2, 2]
-        
+
         self.teacher_model = ResNet.WideResNet(depth=40, num_classes=self.num_classes, widen_factor=2, input_features=3,
                     output_features=16, dropRate=0.0, strides=strides)
         self.teacher_model = self.teacher_model.to(self.device)
@@ -43,6 +43,7 @@ class FewShotKT:
 
         # summary for current training loop and a running average object for loss
         # Use tqdm for progress bar
+        accuracy_dict = {}
 
         for epoch in range(self.num_epochs):
             self.student_model.train()
@@ -52,7 +53,11 @@ class FewShotKT:
             self.train(epoch)
 
             if epoch % self.log_num == 0:
-                self.test()
+                acc = self.test(epoch)
+                accuracy_dict[epoch] = acc
+
+        log_accuracy("KD_AT.csv", accuracy_dict)
+        plot_accuracy("KD_AT.csv")
 
     def train(self, epoch):
         running_acc = count = 0
@@ -81,16 +86,16 @@ class FewShotKT:
                 t.update()
                 # performs updates using calculated gradients
                 self.student_optimizer.step()
-        
+
         print(f'Epoch {epoch + 1} accuracy: {running_acc/count}')
 
-    def test(self):
+    def test(self, epoch):
         print("     Started Testing     ")
         print("##########################")
         self.student_model.eval()
 
         running_acc = count = 0
-        
+
         with torch.no_grad():
             for data, label in self.testloader:
                 data, label = data.to(self.device), label.to(self.device)
@@ -100,10 +105,11 @@ class FewShotKT:
 
                 running_acc += accuracy(student_logits.data, label, self.device)
                 count += 1
-        
+
         print(f"Test accuracy: {running_acc/count}")
         print("##########################")
         print("     Ended Testing     ")
+        return (running_acc/count)
 
     def calculate_epochs(self):
         num_epochs = 0
