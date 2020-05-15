@@ -49,14 +49,13 @@ class FewShotKT:
             if epoch in [60,120,160]:
                 for param_group in self.student_optimizer.param_groups:
                     self.student_optimizer.param_group["lr"] /= 5
-            self.train()
+            self.train(epoch)
 
             if epoch % self.log_num == 0:
                 self.test()
 
-    def train(self):
-        running_acc = 0
-        count = 0
+    def train(self, epoch):
+        running_acc = count = 0
 
         for _, input in enumerate(self.trainloader):
             self.student_optimizer.zero_grad()
@@ -80,11 +79,27 @@ class FewShotKT:
             # performs updates using calculated gradients
             self.student_optimizer.step()
         
-        print(f'Current accuracy is {running_acc/count}')
+        print(f'Epoch {epoch + 1} accuracy: {running_acc/count}')
         print("finished")
 
     def test(self):
-        pass
+        print("Started Testing")
+        self.student.eval()
+
+        running_acc = count = 0
+        
+        with torch.no_grad():
+            for data, label in self.trainloader:
+                data, label = data.to(self.device), label.to(self.device)
+
+                student_logits, *student_activations = self.student_model(train_batch)
+                teacher_logits, *teacher_activations = self.teacher_model(train_batch)
+
+                running_acc += accuracy(student_logits.data, labels_batch, self.device)
+                count += 1
+        
+        print(f"Test accuracy: {running_acc/count}")
+        print("Ended Testing")
 
     def calculate_epochs(self):
         num_epochs = 0
