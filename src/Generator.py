@@ -8,18 +8,23 @@ import torch.nn.functional as F
 # "We use a generic generator with only three convolutional layers"
 class Generator(nn.Module):
 
-    def __init__(self):
+    def __init__(self, input_dim):
         super(Generator, self).__init__()
+        self.linear = nn.Linear(input_dim, 128*8**2)
         self.activation = nn.LeakyReLU(0.2, inplace=True)
+        self.norm = nn.BatchNorm2d(128)
+        self.upsample = nn.Upsample(scale_factor=2)
+        
         self.layers = nn.Sequential(
-            nn.Linear(128*8**2, 128),
-            nn.BatchNorm2d(128),
-            nn.Upsample(scale_factor=2),
+            self.norm,
+            self.upsample,
             nn.Conv2d(in_channels=128, out_channels=128, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(128),
-            nn.Upsample(scale_factor=2),
+            self.norm,
+            self.activation,
+            self.upsample,
             nn.Conv2d(in_channels=128, out_channels=64, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(64),
+            self.activation,
             nn.Conv2d(in_channels=64, out_channels=3, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(3, affine=True)
         )
@@ -30,10 +35,9 @@ class Generator(nn.Module):
             - feed the noise to layers
             - that returns noised based x
         """
-        z = nn.Linear(100, 128*64).view(-1, 128,8,8) # not sure this is how you introduce noise TODO: check noise function
-        z = self.layers(x)
-
-        return z
+        out = self.linear(x)
+        out = out.view((-1,128,8,8))
+        return self.layers(out)
 
     def print_shape(self, x):
         """
