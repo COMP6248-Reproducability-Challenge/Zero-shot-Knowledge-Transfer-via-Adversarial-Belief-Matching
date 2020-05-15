@@ -57,7 +57,7 @@ class FewShotKT:
     def train(self, epoch):
         running_acc = count = 0
 
-        with tqdm(self.trainloader, total=len(self.trainloader), desc='train') as t:
+        with tqdm(self.trainloader, total=len(self.trainloader), desc='train', position=0, leave=True) as t:
             for input in self.trainloader:
                 self.student_optimizer.zero_grad()
 
@@ -87,12 +87,12 @@ class FewShotKT:
     def test(self):
         print("     Started Testing     ")
         print("##########################")
-        self.student.eval()
+        self.student_model.eval()
 
         running_acc = count = 0
         
         with torch.no_grad():
-            for data, label in self.trainloader:
+            for data, label in self.testloader:
                 data, label = data.to(self.device), label.to(self.device)
 
                 student_logits, *student_activations = self.student_model(data)
