@@ -80,10 +80,10 @@ class FewShotKT:
             self.student_optimizer.step()
         
         print(f'Epoch {epoch + 1} accuracy: {running_acc/count}')
-        print("finished")
 
     def test(self):
-        print("Started Testing")
+        print("     Started Testing     ")
+        print("##########################")
         self.student.eval()
 
         running_acc = count = 0
@@ -99,7 +99,8 @@ class FewShotKT:
                 count += 1
         
         print(f"Test accuracy: {running_acc/count}")
-        print("Ended Testing")
+        print("##########################")
+        print("     Ended Testing     ")
 
     def calculate_epochs(self):
         num_epochs = 0
