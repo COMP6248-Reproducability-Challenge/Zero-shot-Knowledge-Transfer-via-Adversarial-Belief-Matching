@@ -1,6 +1,8 @@
 import torch.nn.functional as F
 import torch
 import numpy as np
+from pathlib import Path
+import matplotlib.pyplot as plt
 from torch.utils.data import TensorDataset, random_split, DataLoader
 import torchvision.transforms as transforms
 import torchvision
@@ -65,3 +67,36 @@ def accuracy(logits, data, device):
 
 def checkpoint(model, path):
     torch.save(model.state_dict(), path)
+
+
+def log_accuracy(logfile_name, accuracy_dict):
+    Path("./logs/").mkdir(parents=True, exist_ok=True)
+
+    logfile_name = "./logs/"+ (logfile_name if "." in logfile_name else logfile_name+".csv")
+    f = open(logfile_name, "w+")
+    f.write("Epoch,Accuracy\n")
+
+    for key, value in accuracy_dict.items():
+        f.write(str(key) + "," + str(value)+"\n")
+
+    f.close()
+
+
+def plot_accuracy(logfile_name, save_plot=True):
+    logfile_name = logfile_name if "." in logfile_name else logfile_name+".csv"
+    data = np.genfromtxt(f'./logs/{logfile_name}', delimiter=',', skip_header=1,
+                    names=['Epochs', 'Accuracy'])
+    fig = plt.figure()
+
+    ax1 = fig.add_subplot(111)
+
+    ax1.set_title("Mains power stability")
+    ax1.set_xlabel('Epoch')
+    ax1.set_ylabel('Accuracy')
+    ax1.plot(data['Epochs'], data['Accuracy'], color='r', label='Accuracy per epoch')
+    leg = ax1.legend()
+    # plt.show()
+
+    if save_plot:
+        Path("./plots/").mkdir(parents=True, exist_ok=True)
+        plt.savefig(f'./plots/{logfile_name.split(".")[0]}.png')
