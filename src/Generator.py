@@ -12,7 +12,7 @@ class Generator(nn.Module):
         super(Generator, self).__init__()
         self.activation = nn.LeakyReLU(0.2, inplace=True)
         self.layers = nn.Sequential(
-            nn.Linear(x, 128*8**2),
+            nn.Linear(128*8**2, 128),
             nn.BatchNorm2d(128),
             nn.Upsample(scale_factor=2),
             nn.Conv2d(in_channels=128, out_channels=128, kernel_size=3, stride=1, padding=1),
