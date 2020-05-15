@@ -8,10 +8,7 @@ from torch import optim
 from dataloaders import transform_data
 
 class FewShotKT:
-
     def __init__(self, M, dataset_name):
-
-
         self.M = M
         self.dataset_name = dataset_name
         self.trainloader, self.testloader, self.validationloader, self.num_classes = transform_data(self.dataset_name, self.M)
@@ -19,11 +16,11 @@ class FewShotKT:
         strides = [1, 2, 2]
         
         self.teacher_model = ResNet.WideResNet(depth=40, num_classes=self.num_classes, widen_factor=2, input_features=3,
-                    output_features=16,dropRate=0.0, strides=strides)
+                    output_features=16, dropRate=0.0, strides=strides)
         self.teacher_model = self.teacher_model.to(self.device)
         torch_checkpoint = torch.load('../PreTrainedModels/cifar10-no_teacher-wrn-40-2-0.0-seed0.pth', map_location=self.device)
         self.teacher_model.load_state_dict(torch_checkpoint['model_state_dict'])
-        print(f"Teacher accuracy: {accuracy(self.teacher_model, self.testloader, self.device)}")
+        self.teacher_model.eval()
 
         self.student_model = ResNet.WideResNet(depth=16, num_classes=self.num_classes, widen_factor=1, input_features=3,
                                  output_features=16,dropRate=0.0, strides=strides)
@@ -58,6 +55,8 @@ class FewShotKT:
                 self.test()
 
     def train(self):
+        running_acc = 0
+        count = 0
 
         for _, input in enumerate(self.trainloader):
             self.student_optimizer.zero_grad()
@@ -74,14 +73,14 @@ class FewShotKT:
 
             loss = KL_AT_loss(teacher_logits, student_logits, student_activations, teacher_activations, labels_batch)
 
-
-            acc = accuracy(self.student_model, self.testloader, self.device)
-            print(f'Current accuracy is {acc}')
+            running_acc += accuracy(student_logits.data, labels_batch, self.device)
+            count += 1
 
             loss.backward()
             # performs updates using calculated gradients
             self.student_optimizer.step()
-
+        
+        print(f'Current accuracy is {running_acc/count}')
         print("finished")
 
     def test(self):

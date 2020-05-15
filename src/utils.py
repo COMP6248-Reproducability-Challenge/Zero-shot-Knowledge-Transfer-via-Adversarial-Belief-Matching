@@ -56,26 +56,12 @@ def attention_diff(x, y):
     """
     return (attention(x) - attention(y)).pow(2).mean()
 
-def accuracy(model, data, device):
-    model.eval()
-    labels = []
-    predictions = []
+def accuracy(logits, data, device):
+    _, predictions = torch.max(logits, 1)
+    total = data.size(0)
+    correct = (predictions == data).sum().item()
 
-    for img, label in data:
-        with torch.no_grad():
-            logits = model(img.to(device))[0]
-
-        logits = logits.detach().cpu().numpy()
-        predictions.append(logits)
-        labels.append(label)
-
-    predictions = np.array(predictions)
-    labels = np.array([x.numpy() for x in labels])
-    predictions = np.argmax(predictions, axis=1).flatten()
-    labels = labels.flatten()
-    size = len(labels)
-
-    return np.sum(predictions == labels) / size
+    return correct/total
 
 def checkpoint(model, path):
     torch.save(model.state_dict(), path)

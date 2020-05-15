@@ -8,7 +8,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='ZEROSHOT')
     parser.add_argument("--m", choices=["no_teacher", "zero_shot", "kd_at"], required=True, type=str, help="Method")
     parser.add_argument("--d", choices=["cifar10", "svhn"], required=True, type=str, help="Dataset")
-    parser.add_argument("--r", choices=[True,False], required=False, default=False, type=bool, help="Reproducibility Mode: Setups seeds")
+    parser.add_argument("--r", action='store_true' , help="Reproducibility Mode: Setups seeds")
 
     args = parser.parse_args()
 
