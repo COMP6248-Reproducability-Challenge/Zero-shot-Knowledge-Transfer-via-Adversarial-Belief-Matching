@@ -44,8 +44,8 @@ class FewShotKT:
         # summary for current training loop and a running average object for loss
         # Use tqdm for progress bar
 
-        self.teacher_model.eval()
-        for epoch in tqdm(range(self.num_epochs)):
+        for epoch in range(self.num_epochs):
+            self.student_model.train()
             if epoch in [60,120,160]:
                 for param_group in self.student_optimizer.param_groups:
                     self.student_optimizer.param_group["lr"] /= 5
@@ -57,7 +57,7 @@ class FewShotKT:
     def train(self, epoch):
         running_acc = count = 0
 
-        for _, input in enumerate(self.trainloader):
+        for input in tqdm(self.trainloader, total=len(self.trainloader)):
             self.student_optimizer.zero_grad()
 
             # move to GPU if available
@@ -92,10 +92,10 @@ class FewShotKT:
             for data, label in self.trainloader:
                 data, label = data.to(self.device), label.to(self.device)
 
-                student_logits, *student_activations = self.student_model(train_batch)
-                teacher_logits, *teacher_activations = self.teacher_model(train_batch)
+                student_logits, *student_activations = self.student_model(data)
+                teacher_logits, *teacher_activations = self.teacher_model(data)
 
-                running_acc += accuracy(student_logits.data, labels_batch, self.device)
+                running_acc += accuracy(student_logits.data, label, self.device)
                 count += 1
         
         print(f"Test accuracy: {running_acc/count}")
