@@ -57,27 +57,30 @@ class FewShotKT:
     def train(self, epoch):
         running_acc = count = 0
 
-        for input in tqdm(self.trainloader, total=len(self.trainloader)):
-            self.student_optimizer.zero_grad()
+        with tqdm(self.trainloader, total=len(self.trainloader), desc='train') as t:
+            for input in self.trainloader:
+                self.student_optimizer.zero_grad()
 
-            # move to GPU if available
-            train_batch, labels_batch = input
-            train_batch, labels_batch = train_batch.to(self.device), labels_batch.to(self.device)
+                # move to GPU if available
+                train_batch, labels_batch = input
+                train_batch, labels_batch = train_batch.to(self.device), labels_batch.to(self.device)
 
-            # compute model output, fetch teacher/student output, and compute KD loss
-            student_logits, *student_activations = self.student_model(train_batch)
-            teacher_logits, *teacher_activations = self.teacher_model(train_batch)
+                # compute model output, fetch teacher/student output, and compute KD loss
+                student_logits, *student_activations = self.student_model(train_batch)
+                teacher_logits, *teacher_activations = self.teacher_model(train_batch)
 
-            # teacher/student outputs: logits, attention1, attention2, attention3
+                # teacher/student outputs: logits, attention1, attention2, attention3
 
-            loss = KL_AT_loss(teacher_logits, student_logits, student_activations, teacher_activations, labels_batch)
+                loss = KL_AT_loss(teacher_logits, student_logits, student_activations, teacher_activations, labels_batch)
 
-            running_acc += accuracy(student_logits.data, labels_batch, self.device)
-            count += 1
+                running_acc += accuracy(student_logits.data, labels_batch, self.device)
+                count += 1
 
-            loss.backward()
-            # performs updates using calculated gradients
-            self.student_optimizer.step()
+                loss.backward()
+                t.set_postfix(accuracy='{:05.3f}'.format(running_acc/count))
+                t.update()
+                # performs updates using calculated gradients
+                self.student_optimizer.step()
         
         print(f'Epoch {epoch + 1} accuracy: {running_acc/count}')
 
