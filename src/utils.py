@@ -90,7 +90,7 @@ def plot_accuracy(logfile_name, save_plot=True):
 
     ax1 = fig.add_subplot(111)
 
-    ax1.set_title("Mains power stability")
+    ax1.set_title("Accuracy plot")
     ax1.set_xlabel('Epoch')
     ax1.set_ylabel('Accuracy')
     ax1.plot(data['Epochs'], data['Accuracy'], color='r', label='Accuracy per epoch')
