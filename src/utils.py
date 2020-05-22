@@ -67,7 +67,7 @@ def accuracy(logits, data):
 
 def checkpoint(path, dataset, state_dict, mode, depth, widden_factor, dropout, seed):
     full_path = path + "/" + dataset + "-" + mode + "-wrn-" + f"{depth}-{widden_factor}-{dropout}-seed{seed}.pth"
-    torch.save(model.state_dict, full_path)
+    torch.save(state_dict, full_path)
 
 
 def log_accuracy(logfile_name, accuracy_dict):
