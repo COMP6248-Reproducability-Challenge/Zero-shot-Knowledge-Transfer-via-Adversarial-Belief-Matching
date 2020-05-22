@@ -65,6 +65,7 @@ def accuracy(logits, data, device):
 
     return correct/total
 
+
 def checkpoint(model, path):
     torch.save(model.state_dict(), path)
 
