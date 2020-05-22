@@ -30,7 +30,10 @@ def No_teacher(save_path, dataset, seed):
         num_epochs= 100
     
     scheduler = callbacks.torch_scheduler.MultiStepLR(milestones=[0.3*num_epochs,0.6*num_epochs,0.8*num_epochs], gamma=0.2)
-    trial = Trial(model, optimiser, loss_function, metrics=metrics, callbacks=[scheduler]).to(device)
+    full_path = save_path + "/" + dataset + f"-no_teacher-wrn-{depth}-{widen_factor}-{dropRate}-seed{seed}.pth"
+    checkpoint = callbacks.Interval(full_path, period=50, on_batch=True, save_model_params_only=True)
+
+    trial = Trial(model, optimiser, loss_function, metrics=metrics, callbacks=[scheduler, checkpoint]).to(device)
 
     if validation_loader is None:
         trial.with_generators(train_loader, test_generator=test_loader)
@@ -38,7 +41,7 @@ def No_teacher(save_path, dataset, seed):
         trial.with_generators(train_loader, val_generator=validation_loader, test_generator=test_loader)
 
     trial.run(epochs=num_epochs)
-    state_dict = trial.state_dict()
+    state_dict = trial.state_dict()["model"]
     utils.checkpoint(save_path, dataset, "no_teacher", state_dict, depth, widen_factor, dropRate)
     model.eval()
     predictions = trial.predict()
