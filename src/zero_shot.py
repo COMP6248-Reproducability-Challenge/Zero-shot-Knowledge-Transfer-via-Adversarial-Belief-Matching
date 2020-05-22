@@ -66,7 +66,7 @@ class ZeroShot:
                 student_logits = self.student_model(psuedo_datapoint)[0]
                 teacher_logits = self.teacher_model(psuedo_datapoint)[0]
 
-                generator_loss = - (KL_Loss(teacher_logits, student_logits))
+                generator_loss = -(KL_Loss(teacher_logits, student_logits))
                 generator_loss.backward()
 
                 # performs updates using calculated gradients

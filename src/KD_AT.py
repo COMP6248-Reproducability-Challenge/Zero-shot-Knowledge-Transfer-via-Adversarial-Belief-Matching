@@ -19,7 +19,7 @@ class FewShotKT:
                     output_features=16, dropRate=0.0, strides=strides)
         self.teacher_model = self.teacher_model.to(self.device)
         torch_checkpoint = torch.load('../PreTrainedModels/cifar10-no_teacher-wrn-40-2-0.0-seed0.pth', map_location=self.device)
-        self.teacher_model.load_state_dict(torch_checkpoint['model_state_dict'])
+        self.teacher = self.teacher_model.load_state_dict(torch_checkpoint['model_state_dict'])
         self.teacher_model.eval()
 
         self.student_model = ResNet.WideResNet(depth=16, num_classes=self.num_classes, widen_factor=1, input_features=3,
@@ -78,7 +78,7 @@ class FewShotKT:
 
                 loss = KL_AT_loss(teacher_logits, student_logits, student_activations, teacher_activations, labels_batch)
 
-                running_acc += accuracy(student_logits.data, labels_batch, self.device)
+                running_acc += accuracy(student_logits.data, labels_batch)
                 count += 1
 
                 loss.backward()
@@ -103,7 +103,7 @@ class FewShotKT:
                 student_logits, *student_activations = self.student_model(data)
                 teacher_logits, *teacher_activations = self.teacher_model(data)
 
-                running_acc += accuracy(student_logits.data, label, self.device)
+                running_acc += accuracy(student_logits.data, label)
                 count += 1
 
         print(f"Test accuracy: {running_acc/count}")

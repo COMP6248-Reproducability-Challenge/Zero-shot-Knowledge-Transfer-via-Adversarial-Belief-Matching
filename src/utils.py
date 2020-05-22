@@ -7,9 +7,9 @@ from torch.utils.data import TensorDataset, random_split, DataLoader
 import torchvision.transforms as transforms
 import torchvision
 
-def setup_seeds():
-    np.random.seed(0)
-    torch.manual_seed(0)
+def setup_seeds(seed):
+    np.random.seed(seed)
+    torch.manual_seed(seed)
     torch.backends.cudnn.deterministic = True
 
 def KL_AT_loss(student_logits, teacher_logits,student_activations, teacher_activations,labels,
@@ -58,15 +58,16 @@ def attention_diff(x, y):
     """
     return (attention(x) - attention(y)).pow(2).mean()
 
-def accuracy(logits, data, device):
+def accuracy(logits, data):
     _, predictions = torch.max(logits, 1)
     total = data.size(0)
     correct = (predictions == data).sum().item()
 
     return correct/total
 
-def checkpoint(model, path):
-    torch.save(model.state_dict(), path)
+def checkpoint(path, dataset, state_dict, mode, depth, widden_factor, dropout, seed):
+    full_path = path + "/" + dataset + "-" + mode + "-wrn-" + f"{depth}-{widden_factor}-{dropout}-seed{seed}.pth"
+    torch.save(model.state_dict, full_path)
 
 
 def log_accuracy(logfile_name, accuracy_dict):
