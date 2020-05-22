@@ -42,6 +42,6 @@ def No_teacher(save_path, dataset, seed):
 
     trial.run(epochs=num_epochs)
     state_dict = trial.state_dict()["model"]
-    utils.checkpoint(save_path, dataset, "no_teacher", state_dict, depth, widen_factor, dropRate)
+    torch.save(state_dict, full_path)
     model.eval()
     predictions = trial.predict()
