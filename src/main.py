@@ -3,31 +3,24 @@ import zero_shot
 import KD_AT
 import argparse
 import utils
+import config
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='ZEROSHOT')
-    parser.add_argument("--m", choices=["no_teacher", "zero_shot", "kd_at"], required=True, type=str, help="Method")
-    parser.add_argument("--d", choices=["cifar10", "svhn"], required=True, type=str, help="Dataset")
-    parser.add_argument("--r", action='store_true' , help="Reproducibility Mode: Setups seeds")
-    parser.add_argument("--s", required=False, type=str, default="../PretrainedModels", help="Saving path")
+    utils.setup_seeds(config.seed)
 
-    args = parser.parse_args()
+    mode = config.mode
 
-    args.m = args.m.lower()
-    args.d = args.d.lower()
-
-    seed = 0
-    if args.r:
-        utils.setup_seeds(seed)
-
-    if args.m == "no_teacher":
-        No_Teacher.No_teacher(args.s, args.d, seed)
-    elif args.m == "zero_shot":
-        zeros = zero_shot.ZeroShot(100, args.d, args.s, seed)
+    if mode == "no_teacher":
+        no_teacher = No_Teacher.No_teacher()
+        #no_teacher.train()
+    elif mode == "zero_shot":
+        zeros = zero_shot.ZeroShot()
         zeros.train()
-    else:
-        kd_at = KD_AT.FewShotKT(100, args.d)
+    elif mode == "kd_at":
+        kd_at = KD_AT.FewShotKT()
         kd_at.train_KT_AT()
+    else:
+        raise ValueError('Not valid mode')
 
 
 

@@ -65,11 +65,6 @@ def accuracy(logits, data):
 
     return correct/total
 
-def checkpoint(path, dataset, model, mode, depth, widden_factor, dropout, seed):
-    full_path = path + "/" + dataset + "-" + mode + "-wrn-" + f"{depth}-{widden_factor}-{dropout}-seed{seed}.pth"
-    torch.save(model.state_dict(), full_path)
-
-
 def log_accuracy(logfile_name, accuracy_dict):
     Path("./logs/").mkdir(parents=True, exist_ok=True)
 
