@@ -7,27 +7,20 @@ import torch
 from torch.utils.data.dataset import random_split
 
 def transform_data(dataset, M= 0, train_batch_size= 128, test_batch_size= 10, validation= False, down= False):
-    trainset, testset = load_data(dataset)
-
-    num_classes = len(trainset.classes)
-    validation_loader = None
+    trainset, valset, testset = load_data(dataset)
 
     if down:
         trainset = downsample(trainset, M)
         #testset = downsample(testset, M)
 
-    num_classes = len(trainset.classes)
-    validation_loader = None
-
-    if validation:
-        size = len(trainset)
-        train_size = int(0.9 * size)
-        val_size = size-train_size
-        trainset, valset = random_split(trainset, [train_size, val_size])
-        validation_loader = DataLoader(valset, batch_size= test_batch_size, shuffle=True)
+    num_classes = 10
 
     # create data loaders
     trainloader = DataLoader(trainset, batch_size= train_batch_size, shuffle=True)
+    if valset is not None:
+        validation_loader = DataLoader(trainset, batch_size= test_batch_size, shuffle=True)
+    else:
+        validation_loader = None
     testloader = DataLoader(testset, batch_size= test_batch_size, shuffle=True)
 
     return trainloader, testloader, validation_loader, num_classes
@@ -54,7 +47,7 @@ def load_data(dataset):
         trainset = CIFAR10("./data", train=True, download=True, transform=transform_train)
         testset = CIFAR10("./data", train=False, download=True, transform=transform_test)
 
-        return trainset, testset
+        return trainset, None, testset
 
     elif dataset.lower() == 'svhn':
         transform = transforms.Compose([
@@ -63,9 +56,10 @@ def load_data(dataset):
         ])
 
         trainset = torchvision.datasets.SVHN(root='./data', split='train', download=True, transform=transform)
+        valset = torchvision.datasets.SVHN(root='./data', split='extra', download=True, transform=transform)
         testset = torchvision.datasets.SVHN(root='./data', split='test', download=True, transform=transform)
 
-        return trainset, testset
+        return trainset, valset, testset
     
     else:
         raise ValueError('Dataset not specified.')
