@@ -89,8 +89,8 @@ class FewShotKT:
 
                 running_loss += loss.data
                 running_acc += accuracy(student_logits.data, labels_batch)
-                writeMetrics({"accuracy": running_acc,
-                              "loss": running_loss})
+                writeMetrics({"accuracy": running_acc/(batch_num+1),
+                              "loss": running_loss/(batch_num+1)})
 
                 t.set_postfix(accuracy='{:05.3f}'.format(running_acc/(batch_num+1)), loss='{:05.3f}'.format(running_loss/(batch_num+1)))
                 t.update()
