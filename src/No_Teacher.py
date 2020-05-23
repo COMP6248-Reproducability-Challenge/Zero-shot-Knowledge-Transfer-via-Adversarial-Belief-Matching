@@ -20,6 +20,7 @@ def No_teacher(save_path, dataset, seed):
 
     model = ResNet.WideResNet(depth=depth, num_classes=num_classes, widen_factor=widen_factor, input_features=input_features,
                         output_features=output_features, dropRate=dropRate, strides=strides)
+    model.to(device)
 
     optimiser = torch.optim.SGD(model.parameters(), lr=0.1, momentum=0.9, nesterov=True, weight_decay=5e-4)
     loss_function = torch.nn.CrossEntropyLoss()
@@ -101,7 +102,7 @@ def test(model, test_loader):
             for curr_batch, batch in enumerate(validation_loader):
                 data, labels = batch
                 data, labels = data.to(device), labels.to(device)
-                
+
                 logits, _, _, _ = model(data)
 
                 running_acc += utils.accuracy(logits, labels)
