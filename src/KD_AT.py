@@ -41,6 +41,7 @@ class FewShotKT:
 
         self.log_num = 10
         self.num_epochs = self.calculate_epochs()
+        self.counter = 0
 
         self.student_optimizer = torch.optim.SGD(self.student_model.parameters(), lr=0.1, momentum=0.9, weight_decay=5e-4, nesterov=True)
         self.scheduler = optim.lr_scheduler.MultiStepLR(self.student_optimizer, milestones=[0.3*self.num_epochs - 1,0.6*self.num_epochs - 1,0.8*self.num_epochs - 1], gamma=0.2)
@@ -52,6 +53,7 @@ class FewShotKT:
         # summary for current training loop and a running average object for loss
         # Use tqdm for progress bar
         accuracy_dict = {}
+
         
         for epoch in range(self.num_epochs):
             self.student_model.train()
@@ -90,7 +92,8 @@ class FewShotKT:
                 running_loss += loss.data
                 running_acc += accuracy(student_logits.data, labels_batch)
                 writeMetrics({"accuracy": running_acc/(batch_num+1),
-                              "loss": running_loss/(batch_num+1)})
+                              "loss": running_loss/(batch_num+1)}, self.counter)
+                self.counter +=1
 
                 t.set_postfix(accuracy='{:05.3f}'.format(running_acc/(batch_num+1)), loss='{:05.3f}'.format(running_loss/(batch_num+1)))
                 t.update()
