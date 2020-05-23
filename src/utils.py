@@ -58,7 +58,7 @@ def attention_diff(x, y):
     """
     return (attention(x) - attention(y)).pow(2).mean()
 
-def accuracy(logits, data):
+def accuracy(predictions, labels):    
     _, predictions = torch.max(logits, 1)
     total = data.size(0)
     correct = (predictions == data).sum().item()

@@ -19,6 +19,9 @@ def No_teacher(save_path, dataset, seed):
 
     model = ResNet.WideResNet(depth=depth, num_classes=num_classes, widen_factor=widen_factor, input_features=input_features,
                         output_features=output_features, dropRate=dropRate, strides=strides, noTeacher=True)
+    torch_checkpoint = torch.load('../PreTrainedModels/cifar10-no_teacher-wrn-40-2-0.0-seed0.pth', map_location=device)
+    model.load_state_dict(torch_checkpoint)
+    model.train()
 
     optimiser = torch.optim.SGD(model.parameters(), lr=0.1, momentum=0.9, nesterov=True, weight_decay=5e-4)
     loss_function = torch.nn.CrossEntropyLoss()
@@ -40,8 +43,8 @@ def No_teacher(save_path, dataset, seed):
     else:
         trial.with_generators(train_loader, val_generator=validation_loader, test_generator=test_loader)
 
-    trial.run(epochs=num_epochs)
-    state_dict = trial.state_dict()["model"]
-    torch.save(state_dict, full_path)
+    # trial.run(epochs=num_epochs)
+    # state_dict = trial.state_dict()["model"]
+    # torch.save(state_dict, full_path)
     model.eval()
     predictions = trial.predict()
