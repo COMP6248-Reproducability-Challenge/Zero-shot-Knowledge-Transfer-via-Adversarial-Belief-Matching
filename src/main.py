@@ -12,7 +12,7 @@ if __name__ == "__main__":
 
     if mode == "no_teacher":
         no_teacher = No_Teacher.No_teacher()
-        #no_teacher.train()
+        no_teacher.train()
     elif mode == "zero_shot":
         zeros = zero_shot.ZeroShot()
         zeros.train()

@@ -1,5 +1,5 @@
 mode = "no_teacher"
-dataset = "cifar10"
+dataset = "svhn"
 seed = 0
 save_path = "../PreTrainedModels"
 

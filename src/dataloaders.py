@@ -62,8 +62,8 @@ def load_data(dataset):
             transforms.Normalize((0.4377, 0.4438, 0.4728), (0.1980, 0.2010, 0.1970))
         ])
 
-        trainset = torchvision.datasets.SVHN(root='./data', train=True,download=True, transform=transform)
-        testset = torchvision.datasets.SVHN(root='./data', train=False,download=True, transform=transform)
+        trainset = torchvision.datasets.SVHN(root='./data', split='train', download=True, transform=transform)
+        testset = torchvision.datasets.SVHN(root='./data', split='test', download=True, transform=transform)
 
         return trainset, testset
     
