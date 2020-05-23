@@ -19,7 +19,7 @@ class FewShotKT:
                     output_features=16, dropRate=0.0, strides=strides)
         self.teacher_model = self.teacher_model.to(self.device)
         torch_checkpoint = torch.load('../PreTrainedModels/cifar10-no_teacher-wrn-40-2-0.0-seed0.pth', map_location=self.device)
-        self.teacher = self.teacher_model.load_state_dict(torch_checkpoint['model_state_dict'])
+        self.teacher = self.teacher_model.load_state_dict(torch_checkpoint)
         self.teacher_model.eval()
 
         self.student_model = ResNet.WideResNet(depth=16, num_classes=self.num_classes, widen_factor=1, input_features=3,
