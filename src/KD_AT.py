@@ -12,6 +12,7 @@ import config
 class FewShotKT:
     def __init__(self):
         self.dataset = config.dataset
+        self.M = config.downsample['value']
         self.trainloader, self.testloader, self.validationloader, self.num_classes = dataloaders.transform_data(self.dataset, 
                                                     M= config.downsample['value'], down= config.downsample['action'])
         self.device = "cuda:0" if torch.cuda.is_available() else "cpu"
@@ -53,7 +54,7 @@ class FewShotKT:
         
         for epoch in range(self.num_epochs):
             self.student_model.train()
-            self.train(epoch)
+            self.train()
 
             if epoch % self.log_num == 0:
                 acc = self.test(epoch)
@@ -113,7 +114,7 @@ class FewShotKT:
 
     def calculate_epochs(self):
         num_epochs = 0
-        if self.dataset_name == 'cifar10':
+        if self.dataset == 'cifar10':
             num_epochs = int(200 * (5000 / self.M))
         else:
             epochs = int(5000 * 100/ self.M)

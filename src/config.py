@@ -1,4 +1,4 @@
-mode = "no_teacher"
+mode = "kd_at"
 dataset = "cifar10"
 seed = 0
 save_path = "../PreTrainedModels"

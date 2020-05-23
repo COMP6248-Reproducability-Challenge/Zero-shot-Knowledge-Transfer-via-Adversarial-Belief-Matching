@@ -17,7 +17,7 @@ class ZeroShot:
         self.ns = 10
 
         self.total_batches = 65000
-        self.dataset_name = config.dataset_name
+        self.dataset_name = config.dataset
 
         _, self.testloader, _ , self.num_classes = dataloaders.transform_data(self.dataset, M= config.downsample['value'], down= config.downsample['action'])
 
