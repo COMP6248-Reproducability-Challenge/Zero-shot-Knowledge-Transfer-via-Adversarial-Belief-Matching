@@ -2,7 +2,7 @@ import logging
 import numpy as np
 import torch
 from tqdm import tqdm
-from utils import KL_AT_loss, accuracy, log_accuracy, plot_accuracy
+from utils import KL_AT_loss, accuracy, log_accuracy, plot_accuracy, writeMetrics
 import os
 import ResNet
 from torch import optim
@@ -11,6 +11,7 @@ import config
 
 class FewShotKT:
     def __init__(self):
+
         self.dataset = config.dataset
         self.M = config.downsample['value']
         self.trainloader, self.testloader, self.validationloader, self.num_classes = dataloaders.transform_data(self.dataset, 
@@ -59,7 +60,6 @@ class FewShotKT:
             if epoch % self.log_num == 0:
                 acc = self.test(epoch)
                 accuracy_dict[epoch] = acc
-
                 torch.save(self.student_model.state_dict(), self.save_path)
             
             self.scheduler.step()
@@ -89,6 +89,8 @@ class FewShotKT:
 
                 running_loss += loss.data
                 running_acc += accuracy(student_logits.data, labels_batch)
+                writeMetrics({"accuracy": running_acc,
+                              "loss": running_loss})
 
                 t.set_postfix(accuracy='{:05.3f}'.format(running_acc/(batch_num+1)), loss='{:05.3f}'.format(running_loss/(batch_num+1)))
                 t.update()
