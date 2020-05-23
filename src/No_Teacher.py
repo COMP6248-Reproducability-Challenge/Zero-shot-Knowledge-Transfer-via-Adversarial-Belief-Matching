@@ -1,8 +1,6 @@
 import dataloaders
 import ResNet
 import torch
-from torchbearer import Trial
-from torchbearer import callbacks
 import utils
 from tqdm import tqdm
 
@@ -99,7 +97,7 @@ def test(model, test_loader):
 
     with torch.no_grad():
         with tqdm(test_loader, total=len(test_loader), desc='test', position=0, leave=True) as t:
-            for curr_batch, batch in enumerate(validation_loader):
+            for curr_batch, batch in enumerate(test_loader):
                 data, labels = batch
                 data, labels = data.to(device), labels.to(device)
 
