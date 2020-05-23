@@ -23,7 +23,7 @@ class FewShotKT:
         self.teacher_model.eval()
 
         #Check teacher accuracy
-        self.verify_teacher_accuracy()
+        #self.verify_teacher_accuracy()
 
         self.student_model = ResNet.WideResNet(depth=16, num_classes=self.num_classes, widen_factor=1, input_features=3,
                                  output_features=16,dropRate=0.0, strides=strides)

@@ -4,6 +4,7 @@ import torch
 from torchbearer import Trial
 from torchbearer import callbacks
 import utils
+from tqdm import tqdm
 
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
 
@@ -18,33 +19,92 @@ def No_teacher(save_path, dataset, seed):
     output_features = 16
 
     model = ResNet.WideResNet(depth=depth, num_classes=num_classes, widen_factor=widen_factor, input_features=input_features,
-                        output_features=output_features, dropRate=dropRate, strides=strides, noTeacher=True)
-    torch_checkpoint = torch.load('../PreTrainedModels/cifar10-no_teacher-wrn-40-2-0.0-seed0.pth', map_location=device)
-    model.load_state_dict(torch_checkpoint)
-    model.train()
+                        output_features=output_features, dropRate=dropRate, strides=strides)
 
     optimiser = torch.optim.SGD(model.parameters(), lr=0.1, momentum=0.9, nesterov=True, weight_decay=5e-4)
     loss_function = torch.nn.CrossEntropyLoss()
-    metrics = ['loss', 'accuracy']
 
     if dataset == "cifar10":
         num_epochs= 200
     else:
         num_epochs= 100
+
+    scheduler = torch.optim.lr_scheduler.MultiStepLR(optimiser, milestones=[0.3*num_epochs,0.6*num_epochs,0.8*num_epochs], gamma=0.2)
+    save_epochs = [50,99,150,199]
     
-    scheduler = callbacks.torch_scheduler.MultiStepLR(milestones=[0.3*num_epochs,0.6*num_epochs,0.8*num_epochs], gamma=0.2)
-    full_path = save_path + "/" + dataset + f"-no_teacher-wrn-{depth}-{widen_factor}-{dropRate}-seed{seed}.pth"
-    checkpoint = callbacks.Interval(full_path, period=50, on_batch=True, save_model_params_only=True)
+    for epoch in range(num_epochs):
+        print(f"Epoch {epoch + 1}/{num_epochs}")
 
-    trial = Trial(model, optimiser, loss_function, metrics=metrics, callbacks=[scheduler, checkpoint]).to(device)
+        running_acc = 0
+        running_loss = 0
 
-    if validation_loader is None:
-        trial.with_generators(train_loader, test_generator=test_loader)
-    else:
-        trial.with_generators(train_loader, val_generator=validation_loader, test_generator=test_loader)
+        if epoch in save_epochs:
+            utils.checkpoint(save_path, dataset, model, "no_teacher", depth, widen_factor, dropRate, seed)  
 
-    # trial.run(epochs=num_epochs)
-    # state_dict = trial.state_dict()["model"]
-    # torch.save(state_dict, full_path)
+        model.train()
+         
+        with tqdm(train_loader, total=len(train_loader), desc='train', position=0, leave=True) as t:
+            for curr_batch, batch in enumerate(train_loader):
+                optimiser.zero_grad()
+                
+                data, labels = batch
+                data, labels = data.to(device), labels.to(device)
+                logits, _, _, _ = model(data)
+
+                loss = loss_function(logits, labels)
+                loss.backward()
+
+                running_loss += loss.data
+                running_acc += utils.accuracy(logits, labels)
+
+                t.set_postfix(accuracy='{:05.3f}'.format(running_acc/(curr_batch+1)), loss='{:05.3f}'.format(running_loss/(curr_batch+1)))
+                t.update()
+
+                optimiser.step()
+        
+        scheduler.step()
+
+        if validation_loader is not None:
+            validation(model, validation_loader)
+    
+    utils.checkpoint(save_path, dataset, model, "no_teacher", depth, widen_factor, dropRate, seed)
+    test(model, test_loader)
+    
+def validation(model, validation_loader):
     model.eval()
-    predictions = trial.predict()
+
+    running_acc = 0
+    running_loss = 0
+
+    with torch.no_grad():
+        with tqdm(validation_loader, total=len(validation_loader), desc='validation', position=0, leave=True) as t:
+            for curr_batch, batch in enumerate(validation_loader):
+                data, labels = batch
+                data, labels = data.to(device), labels.to(device)
+
+                logits, _, _, _ = model(data)
+                loss = loss_function(logits, labels)
+
+                running_loss += loss.data
+                running_acc += utils.accuracy(logits, labels)
+
+                t.set_postfix(accuracy='{:05.3f}'.format(running_acc/(curr_batch+1)), loss='{:05.3f}'.format(running_loss/(curr_batch+1)))
+                t.update()
+    
+def test(model, test_loader):
+    model.eval()
+
+    running_acc = 0
+
+    with torch.no_grad():
+        with tqdm(test_loader, total=len(test_loader), desc='test', position=0, leave=True) as t:
+            for curr_batch, batch in enumerate(validation_loader):
+                data, labels = batch
+                data, labels = data.to(device), labels.to(device)
+                
+                logits, _, _, _ = model(data)
+
+                running_acc += utils.accuracy(logits, labels)
+
+                t.set_postfix(accuracy='{:05.3f}'.format(running_acc/(curr_batch+1)))
+                t.update()

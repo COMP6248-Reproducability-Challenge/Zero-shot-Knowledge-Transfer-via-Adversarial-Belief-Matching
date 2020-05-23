@@ -58,16 +58,16 @@ def attention_diff(x, y):
     """
     return (attention(x) - attention(y)).pow(2).mean()
 
-def accuracy(predictions, labels):    
+def accuracy(logits, data):    
     _, predictions = torch.max(logits, 1)
     total = data.size(0)
     correct = (predictions == data).sum().item()
 
     return correct/total
 
-def checkpoint(path, dataset, state_dict, mode, depth, widden_factor, dropout, seed):
+def checkpoint(path, dataset, model, mode, depth, widden_factor, dropout, seed):
     full_path = path + "/" + dataset + "-" + mode + "-wrn-" + f"{depth}-{widden_factor}-{dropout}-seed{seed}.pth"
-    torch.save(state_dict, full_path)
+    torch.save(model.state_dict(), full_path)
 
 
 def log_accuracy(logfile_name, accuracy_dict):
