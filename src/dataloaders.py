@@ -66,6 +66,7 @@ def load_data(dataset):
         testset = torchvision.datasets.SVHN(root='./data', train=False,download=True, transform=transform)
 
         return trainset, testset
+    
     else:
         raise ValueError('Dataset not specified.')
 
