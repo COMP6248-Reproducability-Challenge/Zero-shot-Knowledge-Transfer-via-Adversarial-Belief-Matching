@@ -7,36 +7,39 @@ import ResNet
 from torch import optim
 from dataloaders import transform_data
 import Generator
+import os
 
 class ZeroShot:
-    def __init__(self, M, dataset_name, save_path, seed):
+    def __init__(self):
         self.ng = 1
         self.ns = 10
-        self.M = M
-        self.total_batches = 65000
-        self.seed = seed
-        self.dataset_name = dataset_name
-        self.save_path = save_path
 
-        _, self.testloader, _, self.num_classes = transform_data(self.dataset_name, self.M)
+        self.total_batches = 65000
+        self.dataset_name = dataset_name
+
+        _, self.testloader, _ , self.num_classes = dataloaders.transform_data(self.dataset, M= config.downsample['value'], down= config.downsample['action'])
 
         self.device = "cuda:0" if torch.cuda.is_available() else "cpu"
-        strides = [1, 2, 2]
-        self.teacher_model = ResNet.WideResNet(depth=40, num_classes=self.num_classes, widen_factor=2, input_features=3,
-                    output_features=16, dropRate=0.0, strides=strides)
-        torch_checkpoint = torch.load(f'../PreTrainedModels/{self.dataset_name}-no_teacher-wrn-40-2-0.0-seed{self.seed}.pth', 
-                        map_location=self.device)
-        self.teacher_model.load_state_dict(torch_checkpoint)
-        self.teacher_model = self.teacher_model.to(self.device)
+
+        self.teacher_model = ResNet.WideResNet(depth=config.teacher['depth'], num_classes=self.num_classes, widen_factor=config.teacher['widen_factor'], 
+                    input_features=config.teacher['input_features'], output_features=config.teacher['output_features'], 
+                    dropRate=config.teacher['dropRate'], strides=config.teacher['strides'])
+        self.teacher_model.to(self.device)
+
+        teacher_path = f"{config.save_path}/{self.dataset}-no_teacher-wrn-{config.teacher['depth']}-{config.teacher['widen_factor']}-{config.teacher['dropRate']}-seed{config.seed}.pth"
+        
+        if os.path.exists(teacher_path):
+            checkpoint = torch.load(teacher_path, map_location=self.device)
+        else:
+            raise ValueError('No file with the pretrained model selected')
+
+        self.teacher_model.load_state_dict(checkpoint)
         self.teacher_model.eval()
 
-        self.student_depth = 16
-        self.dropRate = 0.0
-        self.widen_factor = 1
-
-        self.student_model = ResNet.WideResNet(depth=self.student_depth, num_classes=self.num_classes, widen_factor=self.widen_factor, 
-                                        input_features=3,output_features=16, dropRate=self.dropRate, strides=strides)
-        self.student_model = self.student_model.to(self.device)
+        self.student_model = ResNet.WideResNet(depth=config.student['depth'], num_classes=self.num_classes, widen_factor=config.student['widen_factor'], 
+                    input_features=config.student['input_features'], output_features=config.student['output_features'], 
+                    dropRate=config.student['dropRate'], strides=config.student['strides'])
+        self.student_model.to(self.device)
         self.student_model.train()
 
         # Load teacher and initialise student network

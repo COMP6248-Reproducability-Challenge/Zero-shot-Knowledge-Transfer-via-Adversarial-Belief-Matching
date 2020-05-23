@@ -5,7 +5,7 @@ import utils
 from tqdm import tqdm
 import config
 
-class No_teacher():
+class No_teacher:
     def __init__(self):
         self.device = "cuda:0" if torch.cuda.is_available() else "cpu"
         self.dataset = config.dataset
@@ -18,7 +18,7 @@ class No_teacher():
         self.save_path = f"{config.save_path}/{self.dataset}-{config.mode}-wrn-{config.teacher['depth']}-{config.teacher['widen_factor']}-{config.teacher['dropRate']}-seed{config.seed}.pth"
     
     def train(self):
-        self.optimiser = torch.optim.SGD(model.parameters(), lr=0.1, momentum=0.9, nesterov=True, weight_decay=5e-4)
+        self.optimiser = torch.optim.SGD(self.model.parameters(), lr=0.1, momentum=0.9, nesterov=True, weight_decay=5e-4)
         self.loss_function = torch.nn.CrossEntropyLoss()
 
         if self.dataset == "cifar10":
@@ -26,7 +26,7 @@ class No_teacher():
         else:
             num_epochs= 100
 
-        scheduler = torch.optim.lr_scheduler.MultiStepLR(optimiser, milestones=[0.3*num_epochs,0.6*num_epochs,0.8*num_epochs], gamma=0.2)
+        scheduler = torch.optim.lr_scheduler.MultiStepLR(self.optimiser, milestones=[0.3*num_epochs - 1,0.6*num_epochs - 1,0.8*num_epochs - 1], gamma=0.2)
         save_epochs = [50,99,150,199]
         
         for epoch in range(num_epochs):
