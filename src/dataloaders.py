@@ -7,7 +7,7 @@ import torch
 from torch.utils.data.dataset import random_split
 
 def transform_data(dataset, M= 0, train_batch_size= 128, test_batch_size= 10, validation= False, down= False):
-    trainset, valset, testset = load_data(dataset)
+    trainset, testset = load_data(dataset)
 
     if down:
         trainset = downsample(trainset, M)
@@ -15,12 +15,17 @@ def transform_data(dataset, M= 0, train_batch_size= 128, test_batch_size= 10, va
 
     num_classes = 10
 
-    # create data loaders
-    trainloader = DataLoader(trainset, batch_size= train_batch_size, shuffle=True)
-    if valset is not None:
-        validation_loader = DataLoader(trainset, batch_size= test_batch_size, shuffle=True)
+    if validation:
+        size = len(trainset)
+        train_size = int(0.9 * size)
+        val_size = size-train_size
+        trainset, valset = random_split(trainset, [train_size, val_size])
+        validation_loader = DataLoader(valset, batch_size= test_batch_size, shuffle=True)
     else:
         validation_loader = None
+
+    # create data loaders
+    trainloader = DataLoader(trainset, batch_size= train_batch_size, shuffle=True)
     testloader = DataLoader(testset, batch_size= test_batch_size, shuffle=True)
 
     return trainloader, testloader, validation_loader, num_classes
@@ -47,7 +52,7 @@ def load_data(dataset):
         trainset = CIFAR10("./data", train=True, download=True, transform=transform_train)
         testset = CIFAR10("./data", train=False, download=True, transform=transform_test)
 
-        return trainset, None, testset
+        return trainset, testset
 
     elif dataset.lower() == 'svhn':
         transform = transforms.Compose([
@@ -56,10 +61,9 @@ def load_data(dataset):
         ])
 
         trainset = torchvision.datasets.SVHN(root='./data', split='train', download=True, transform=transform)
-        valset = torchvision.datasets.SVHN(root='./data', split='extra', download=True, transform=transform)
         testset = torchvision.datasets.SVHN(root='./data', split='test', download=True, transform=transform)
 
-        return trainset, valset, testset
+        return trainset, testset
     
     else:
         raise ValueError('Dataset not specified.')
