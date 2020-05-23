@@ -98,7 +98,7 @@ class FewShotKT:
         self.student_model.eval()
 
         running_acc = 0
-
+        count = len(self.testloader)
         with torch.no_grad():
             for data, label in self.testloader:
                 data, label = data.to(self.device), label.to(self.device)
