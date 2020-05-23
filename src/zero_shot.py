@@ -2,19 +2,22 @@ import logging
 import numpy as np
 import torch
 from tqdm import tqdm
-from utils import KL_AT_loss, accuracy, KL_Loss
+from utils import KL_AT_loss, accuracy, KL_Loss, checkpoint
 import ResNet
 from torch import optim
 from dataloaders import transform_data
 import Generator
 
 class ZeroShot:
-    def __init__(self, M, dataset_name):
+    def __init__(self, M, dataset_name, save_path, seed):
         self.ng = 1
         self.ns = 10
         self.M = M
         self.total_batches = 65000
+        self.seed = seed
         self.dataset_name = dataset_name
+        self.save_path = save_path
+
         _, self.testloader, _, self.num_classes = transform_data(self.dataset_name, self.M)
 
         self.device = "cuda:0" if torch.cuda.is_available() else "cpu"
@@ -22,12 +25,16 @@ class ZeroShot:
         self.teacher_model = ResNet.WideResNet(depth=40, num_classes=self.num_classes, widen_factor=2, input_features=3,
                     output_features=16, dropRate=0.0, strides=strides)
         torch_checkpoint = torch.load('../PreTrainedModels/cifar10-no_teacher-wrn-40-2-0.0-seed0.pth', map_location=self.device)
-        self.teacher_model.load_state_dict(torch_checkpoint['model_state_dict'])
+        self.teacher_model.load_state_dict(torch_checkpoint)
         self.teacher_model = self.teacher_model.to(self.device)
         self.teacher_model.eval()
 
-        self.student_model = ResNet.WideResNet(depth=16, num_classes=self.num_classes, widen_factor=1, input_features=3,
-                                 output_features=16, dropRate=0.0, strides=strides)
+        self.student_depth = 16
+        self.dropRate = 0.0
+        self.widen_factor = 1
+
+        self.student_model = ResNet.WideResNet(depth=self.student_depth, num_classes=self.num_classes, widen_factor=self.widen_factor, 
+                                        input_features=3,output_features=16, dropRate=self.dropRate, strides=strides)
         self.student_model = self.student_model.to(self.device)
         self.student_model.train()
 
@@ -43,14 +50,9 @@ class ZeroShot:
         self.numGeneratorIterations = 5000
         self.num_epochs = 80000
 
-    def train_ZS(self):
-        for epoch in range(self.num_epochs):
-            self.student_model.train()
-            self.train()
-            self.student_model.eval()
-            self.test(epoch)
-
     def train(self):
+        best_acc = 0
+
         for batch in tqdm(range(self.total_batches)):
             # generate guassian noise
             z = torch.randn((128, 100)).to(self.device)
@@ -92,10 +94,22 @@ class ZeroShot:
                 # performs updates using calculated gradients
                 self.student_optimizer.step()
 
+            if (batch + 1) % 500 == 0:
+                acc = self.test()
+
+                if acc > best_acc:
+                    best_acc = acc
+
+                    checkpoint(self.save_path, self.dataset_name, self.student_model, "zero_shot_student", 
+                                self.student_depth, self.widen_factor, self.dropRate, self.seed)
+                    torch.save(self.generator.state_dict(), self.save_path + "/" + self.dataset_name + "-zero_shot_generator-seed0.pth")
+
+                    best_acc = acc
+
             self.cosine_annealing_generator.step()
             self.cosine_annealing_student.step()
     
-    def test(self, epoch):
+    def test(self):
         running_acc = count = 0
         
         with torch.no_grad():
@@ -105,7 +119,7 @@ class ZeroShot:
                 student_logits, *student_activations = self.student_model(data)
                 teacher_logits, *teacher_activations = self.teacher_model(data)
 
-                running_acc += accuracy(student_logits.data, label, self.device)
+                running_acc += accuracy(student_logits.data, label)
                 count += 1
         
-        print(f'Epoch {epoch + 1} accuracy: {running_acc/count}')
+        return running_acc/len(self.test_loader)

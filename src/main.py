@@ -23,8 +23,8 @@ if __name__ == "__main__":
     if args.m == "no_teacher":
         No_Teacher.No_teacher(args.s, args.d, seed)
     elif args.m == "zero_shot":
-        zeros = zero_shot.ZeroShot(100, args.d)
-        zeros.train_ZS()
+        zeros = zero_shot.ZeroShot(100, args.d, args.s, seed)
+        zeros.train()
     else:
         kd_at = KD_AT.FewShotKT(100, args.d)
         kd_at.train_KT_AT()
