@@ -56,7 +56,7 @@ def load_data(dataset):
 
         return trainset, testset
 
-    elif dataset.lower() == 'SVHN':
+    elif dataset.lower() == 'svhn':
         transform = transforms.Compose([
             transforms.ToTensor(),
             transforms.Normalize((0.4377, 0.4438, 0.4728), (0.1980, 0.2010, 0.1970))
@@ -66,6 +66,7 @@ def load_data(dataset):
         testset = torchvision.datasets.SVHN(root='./data', train=False,download=True, transform=transform)
 
         return trainset, testset
+    
     else:
         raise ValueError('Dataset not specified.')
 
