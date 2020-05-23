@@ -1,5 +1,5 @@
-mode = "no_teacher"
-dataset = "svhn"
+mode = "kd_at"
+dataset = "cifar10"
 seed = 0
 save_path = "../PreTrainedModels"
 

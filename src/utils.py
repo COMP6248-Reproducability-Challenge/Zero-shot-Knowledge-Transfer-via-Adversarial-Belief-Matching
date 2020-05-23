@@ -1,22 +1,22 @@
-import torch.nn.functional as F
-import torch
-import numpy as np
 from pathlib import Path
+
 import matplotlib.pyplot as plt
-from torch.utils.data import TensorDataset, random_split, DataLoader
-import torchvision.transforms as transforms
-import torchvision
+import numpy as np
+import torch
+import torch.nn.functional as F
+from torch.utils.tensorboard import SummaryWriter
+writer = SummaryWriter()
 
 def setup_seeds(seed):
     np.random.seed(seed)
     torch.manual_seed(seed)
     torch.backends.cudnn.deterministic = True
 
-def KL_AT_loss(student_logits, teacher_logits,student_activations, teacher_activations,labels,
-               temperature =1.0, alpha=0.9, beta=1000):
 
+def KL_AT_loss(student_logits, teacher_logits, student_activations, teacher_activations, labels,
+               temperature=1.0, alpha=0.9, beta=1000):
     kl_loss = F.kl_div(F.log_softmax(student_logits / temperature, dim=1),
-                          F.softmax(teacher_logits / temperature, dim=1))  # forward KL
+                       F.softmax(teacher_logits / temperature, dim=1))  # forward KL
     kl_loss *= (temperature ** 2) * 2
 
     cross_entropy = F.cross_entropy(student_logits, labels)
@@ -34,10 +34,9 @@ def KL_AT_loss(student_logits, teacher_logits,student_activations, teacher_activ
     return loss
 
 
-def KL_Loss(student_logits, teacher_logits, temperature =1.0):
-
+def KL_Loss(student_logits, teacher_logits, temperature=1.0):
     kl_loss = F.kl_div(F.log_softmax(student_logits / temperature, dim=1),
-                          F.softmax(teacher_logits / temperature, dim=1))
+                       F.softmax(teacher_logits / temperature, dim=1))
 
     return kl_loss
 
@@ -58,30 +57,32 @@ def attention_diff(x, y):
     """
     return (attention(x) - attention(y)).pow(2).mean()
 
-def accuracy(logits, data):    
+
+def accuracy(logits, data):
     _, predictions = torch.max(logits, 1)
     total = data.size(0)
     correct = (predictions == data).sum().item()
 
-    return correct/total
+    return correct / total
+
 
 def log_accuracy(logfile_name, accuracy_dict):
     Path("./logs/").mkdir(parents=True, exist_ok=True)
 
-    logfile_name = "./logs/"+ (logfile_name if "." in logfile_name else logfile_name+".csv")
+    logfile_name = "./logs/" + (logfile_name if "." in logfile_name else logfile_name + ".csv")
     f = open(logfile_name, "w+")
     f.write("Epoch,Accuracy\n")
 
     for key, value in accuracy_dict.items():
-        f.write(str(key) + "," + str(value)+"\n")
+        f.write(str(key) + "," + str(value) + "\n")
 
     f.close()
 
 
 def plot_accuracy(logfile_name, save_plot=True):
-    logfile_name = logfile_name if "." in logfile_name else logfile_name+".csv"
+    logfile_name = logfile_name if "." in logfile_name else logfile_name + ".csv"
     data = np.genfromtxt(f'./logs/{logfile_name}', delimiter=',', skip_header=1,
-                    names=['Epochs', 'Accuracy'])
+                         names=['Epochs', 'Accuracy'])
     fig = plt.figure()
 
     ax1 = fig.add_subplot(111)
@@ -96,3 +97,11 @@ def plot_accuracy(logfile_name, save_plot=True):
     if save_plot:
         Path("./plots/").mkdir(parents=True, exist_ok=True)
         plt.savefig(f'./plots/{logfile_name.split(".")[0]}.png')
+
+
+
+def writeMetrics(value_dict, step):
+
+
+    for key, value in value_dict.items():
+        writer.add_scalar(key, value, step)
