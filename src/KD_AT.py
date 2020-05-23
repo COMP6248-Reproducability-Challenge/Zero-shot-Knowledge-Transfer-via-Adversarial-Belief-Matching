@@ -41,7 +41,7 @@ class FewShotKT:
         self.num_epochs = self.calculate_epochs()
 
         self.student_optimizer = torch.optim.SGD(self.student_model.parameters(), lr=0.1, momentum=0.9, weight_decay=5e-4, nesterov=True)
-        self.scheduler = optim.lr_scheduler.MultiStepLR(self.student_optimizer, milestones=[0.3*num_epochs - 1,0.6*num_epochs - 1,0.8*num_epochs - 1], gamma=0.2)
+        self.scheduler = optim.lr_scheduler.MultiStepLR(self.student_optimizer, milestones=[0.3*self.num_epochs - 1,0.6*self.num_epochs - 1,0.8*self.num_epochs - 1], gamma=0.2)
         self.save_path = f"{config.save_path}/{self.dataset}-{config.mode}-wrn_student-{config.teacher['depth']}-{config.teacher['widen_factor']}-{config.teacher['dropRate']}-seed{config.seed}.pth"
 
 
@@ -86,7 +86,7 @@ class FewShotKT:
                 loss = KL_AT_loss(teacher_logits, student_logits, student_activations, teacher_activations, labels_batch)
                 loss.backward()
 
-                runnning_loss += loss.data
+                running_loss += loss.data
                 running_acc += accuracy(student_logits.data, labels_batch)
 
                 t.set_postfix(accuracy='{:05.3f}'.format(running_acc/(batch_num+1)), loss='{:05.3f}'.format(running_loss/(batch_num+1)))
