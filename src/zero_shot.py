@@ -65,62 +65,69 @@ class ZeroShot:
     def train(self):
         best_acc = 0
 
-        for batch in tqdm(range(self.total_batches)):
-            # generate guassian noise
-            z = torch.randn((128, 100)).to(self.device)
-
-            for i in range(self.ng):
-                self.generator_optimizer.zero_grad()
-
-                # get generator output
-                psuedo_datapoint = self.generator(z)
-
-                # teacher/student outputs: logits, attention1, attention2, attention3
-                # compute model output, fetch teacher/student output, and compute KD loss
-                student_logits = self.student_model(psuedo_datapoint)[0]
-                teacher_logits = self.teacher_model(psuedo_datapoint)[0]
-
-                generator_loss = -(KL_Loss(teacher_logits, student_logits))
-                generator_loss.backward()
-
-                # performs updates using calculated gradients
-                self.generator_optimizer.step()
-
-            for i in range(self.ns):
-                self.student_optimizer.zero_grad()
-
+        with tqdm(range(self.total_batches), total=self.total_batches, desc='train', position=0, leave=True) as t:
+            for batch in range(self.total_batches):
                 # generate guassian noise
                 z = torch.randn((128, 100)).to(self.device)
 
-                # get generator output
-                psuedo_datapoint = self.generator(z)
+                for i in range(self.ng):
+                    self.generator_optimizer.zero_grad()
 
-                # teacher/student outputs: logits, attention1, attention2, attention3
-                # compute model output, fetch teacher/student output, and compute KD loss
-                student_logits = self.student_model(psuedo_datapoint)[0]
-                teacher_logits = self.teacher_model(psuedo_datapoint)[0]
+                    # get generator output
+                    psuedo_datapoint = self.generator(z)
 
-                student_loss = KL_Loss(teacher_logits, student_logits)
+                    # teacher/student outputs: logits, attention1, attention2, attention3
+                    # compute model output, fetch teacher/student output, and compute KD loss
+                    student_logits = self.student_model(psuedo_datapoint)[0]
+                    teacher_logits = self.teacher_model(psuedo_datapoint)[0]
 
-                student_loss.backward()
-                # performs updates using calculated gradients
-                self.student_optimizer.step()
+                    generator_loss = -(KL_Loss(teacher_logits, student_logits))
+                    generator_loss.backward()
 
-            if (batch + 1) % 10 == 0:
-                acc = self.test()
-                writeMetrics({"accuracy": acc}, self.acc_counter)
-                self.acc_counter +=1
+                    # performs updates using calculated gradients
+                    self.generator_optimizer.step()
 
-                if acc > best_acc:
-                    best_acc = acc
-                    torch.save(self.student_model.state_dict(), self.student_save_path)
-                    torch.save(self.generator.state_dict(), self.generator_save_path)
-                    best_acc = acc
+                for i in range(self.ns):
+                    self.student_optimizer.zero_grad()
 
-            writeMetrics({"Student Loss": student_loss, "Generator Loss": generator_loss }, self.counter)
-            self.counter +=1
-            self.cosine_annealing_generator.step()
-            self.cosine_annealing_student.step()
+                    # generate guassian noise
+                    z = torch.randn((128, 100)).to(self.device)
+
+                    # get generator output
+                    psuedo_datapoint = self.generator(z)
+
+                    # teacher/student outputs: logits, attention1, attention2, attention3
+                    # compute model output, fetch teacher/student output, and compute KD loss
+                    student_logits = self.student_model(psuedo_datapoint)[0]
+                    teacher_logits = self.teacher_model(psuedo_datapoint)[0]
+
+                    student_loss = KL_Loss(teacher_logits, student_logits)
+
+                    student_loss.backward()
+                    # performs updates using calculated gradients
+                    self.student_optimizer.step()
+
+
+
+                if (batch + 1) % 10 == 0:
+                    acc = self.test()
+
+                    t.set_postfix(accuracy='{:05.3f}'.format(acc),
+                                  loss='{:05.3f}'.format(student_loss))
+                    t.update()
+                    writeMetrics({"accuracy": acc}, self.acc_counter)
+                    self.acc_counter +=1
+
+                    if acc > best_acc:
+                        best_acc = acc
+                        torch.save(self.student_model.state_dict(), self.student_save_path)
+                        torch.save(self.generator.state_dict(), self.generator_save_path)
+                        best_acc = acc
+
+                writeMetrics({"Student Loss": student_loss, "Generator Loss": generator_loss }, self.counter)
+                self.counter +=1
+                self.cosine_annealing_generator.step()
+                self.cosine_annealing_student.step()
     
     def test(self):
         running_acc = count = 0
