@@ -65,8 +65,7 @@ class ZeroShot:
     def train(self):
         best_acc = 0
 
-        #with tqdm(range(self.total_batches), total=self.total_batches, desc='train', position=0, leave=True) as t:
-        for batch in range(self.total_batches):
+        for batch in tqdm(range(self.total_batches)):
             # generate guassian noise
             z = torch.randn((128, 100)).to(self.device)
 
@@ -112,9 +111,8 @@ class ZeroShot:
             if (batch + 1) % 10 == 0:
                 acc = self.test()
 
-                # t.set_postfix(accuracy='{:05.3f}'.format(acc),
-                #               loss='{:05.3f}'.format(student_loss))
-                # t.update()
+                print(f"\nAccuracy: {acc:05.3f}")
+                print(f'Student Loss: {student_loss:05.3f}')
                 writeMetrics({"accuracy": acc}, self.acc_counter)
                 self.acc_counter +=1
 
