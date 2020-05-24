@@ -51,6 +51,7 @@ class ZeroShot:
         self.cosine_annealing_student = optim.lr_scheduler.CosineAnnealingLR(self.student_optimizer, self.total_batches)
 
         self.generator = Generator.Generator(100)
+        self.generator.to(self.device)
         self.generator_optimizer = optim.Adam(self.generator.parameters(), lr=1e-3)
         self.cosine_annealing_generator = optim.lr_scheduler.CosineAnnealingLR(self.generator_optimizer, self.total_batches)
 
