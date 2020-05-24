@@ -45,9 +45,11 @@ class FewShotKT:
 
         self.student_optimizer = torch.optim.SGD(self.student_model.parameters(), lr=0.1, momentum=0.9, weight_decay=5e-4, nesterov=True)
         self.scheduler = optim.lr_scheduler.MultiStepLR(self.student_optimizer, milestones=[0.3*self.num_epochs - 1,0.6*self.num_epochs - 1,0.8*self.num_epochs - 1], gamma=0.2)
-        self.save_path = f"{config.save_path}/{self.dataset}-{config.mode}-wrn_student-{config.teacher['depth']}-{config.teacher['widen_factor']}-{config.teacher['dropRate']}-seed{config.seed}.pth"
 
-
+        if config.downsample['action']:
+            self.save_path = f"{config.save_path}/{self.dataset}-{config.mode}-wrn_student-{config.teacher['depth']}-{config.teacher['widen_factor']}-{config.teacher['dropRate']}-down_sample{config.downsample['value']}-seed{config.seed}.pth"
+        else:
+            self.save_path = f"{config.save_path}/{self.dataset}-{config.mode}-wrn_student-{config.teacher['depth']}-{config.teacher['widen_factor']}-{config.teacher['dropRate']}-seed{config.seed}.pth"
 
     def train_KT_AT(self):
         # summary for current training loop and a running average object for loss

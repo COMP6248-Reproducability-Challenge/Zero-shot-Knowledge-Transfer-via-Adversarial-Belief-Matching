@@ -29,7 +29,7 @@ class ZeroShot:
                     input_features=config.teacher['input_features'], output_features=config.teacher['output_features'], 
                     dropRate=config.teacher['dropRate'], strides=config.teacher['strides'])
         self.teacher_model.to(self.device)
-
+        
         teacher_path = f"{config.save_path}/{self.dataset}-no_teacher-wrn-{config.teacher['depth']}-{config.teacher['widen_factor']}-{config.teacher['dropRate']}-seed{config.seed}.pth"
         
         if os.path.exists(teacher_path):
@@ -59,8 +59,12 @@ class ZeroShot:
         self.numGeneratorIterations = 5000
         self.num_epochs = 80000
 
-        self.student_save_path = f"{config.save_path}/{self.dataset}-{config.mode}-wrn_student-{config.student['depth']}-{config.student['widen_factor']}-{config.student['dropRate']}-seed{config.seed}.pth"
-        self.generator_save_path = f"{config.save_path}/{self.dataset}-{config.mode}-generator-seed{config.seed}.pth"
+        if config.downsample['action']:
+            self.student_save_path = f"{config.save_path}/{self.dataset}-{config.mode}-wrn_student-{config.student['depth']}-{config.student['widen_factor']}-{config.student['dropRate']}-down_sample{config.downsample['value']}-seed{config.seed}.pth"
+            self.generator_save_path = f"{config.save_path}/{self.dataset}-{config.mode}-generator-down_sample{config.downsample['value']}-seed{config.seed}.pth"
+        else:
+            self.student_save_path = f"{config.save_path}/{self.dataset}-{config.mode}-wrn_student-{config.student['depth']}-{config.student['widen_factor']}-{config.student['dropRate']}-seed{config.seed}.pth"
+            self.generator_save_path = f"{config.save_path}/{self.dataset}-{config.mode}-generator-seed{config.seed}.pth"
 
     def train(self):
         best_acc = 0

@@ -9,13 +9,18 @@ class No_teacher:
     def __init__(self):
         self.device = "cuda:0" if torch.cuda.is_available() else "cpu"
         self.dataset = config.dataset
-        self.train_loader, self.test_loader, self.validation_loader, self.num_classes = dataloaders.transform_data(self.dataset)
+        self.train_loader, self.test_loader, self.validation_loader, self.num_classes = dataloaders.transform_data(self.dataset, 
+                                                                    M= config.downsample['value'], down= config.downsample['action'])
 
         self.model = ResNet.WideResNet(depth=config.teacher['depth'], num_classes=self.num_classes, widen_factor=config.teacher['widen_factor'], 
                     input_features=config.teacher['input_features'], output_features=config.teacher['output_features'], 
                     dropRate=config.teacher['dropRate'], strides=config.teacher['strides'])
         self.model.to(self.device)
-        self.save_path = f"{config.save_path}/{self.dataset}-{config.mode}-wrn-{config.teacher['depth']}-{config.teacher['widen_factor']}-{config.teacher['dropRate']}-seed{config.seed}.pth"
+
+        if config.downsample['action']:
+            self.save_path = f"{config.save_path}/{self.dataset}-{config.mode}-wrn-{config.teacher['depth']}-{config.teacher['widen_factor']}-{config.teacher['dropRate']}-down_sample{config.downsample['value']}-seed{config.seed}.pth"
+        else:
+            self.save_path = f"{config.save_path}/{self.dataset}-{config.mode}-wrn-{config.teacher['depth']}-{config.teacher['widen_factor']}-{config.teacher['dropRate']}-seed{config.seed}.pth"
     
     def train(self):
         self.optimiser = torch.optim.SGD(self.model.parameters(), lr=0.1, momentum=0.9, nesterov=True, weight_decay=5e-4)
