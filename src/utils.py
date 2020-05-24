@@ -102,6 +102,5 @@ def plot_accuracy(logfile_name, save_plot=True):
 
 def writeMetrics(value_dict, step):
 
-
     for key, value in value_dict.items():
         writer.add_scalar(key, value, step)
