@@ -41,6 +41,19 @@ def KL_Loss(student_logits, teacher_logits, temperature=1.0):
     return kl_loss
 
 
+def student_loss_zero_shot(student_outputs, teacher_outputs, b=250):
+    student_out, student_activations = student_outputs[0], student_outputs[1:]
+    teacher_out, teacher_activations = teacher_outputs[0], teacher_outputs[1:]
+
+    activation_pairs = zip(student_activations, teacher_activations)
+
+    attention_losses = [attention_diff(att1, att2) for (att1, att2) in activation_pairs]
+    loss_term1 = b * sum(attention_losses)
+    loss = loss_term1 - (-KL_Loss(student_out, teacher_out))
+
+    return loss
+
+
 def attention(x):
     """
     Taken from https://github.com/szagoruyko/attention-transfer
