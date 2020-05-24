@@ -36,7 +36,9 @@ class ConvBlock(nn.Module):
             ("activate", Swish(inplace=True))
         ]))
 
-    # TODO: forward pass
+
+    def forward(self, x):
+        return self.convolutional_sequence(x)
 
 
 """
@@ -54,7 +56,9 @@ class Squeeze(nn.Module):
             ("L2", nn.Conv2d(reduced_dim, in_planes, kernel_size=1, stride=1, padding=0, bias=True))
         ]))
 
-    # TODO: forward pass
+    def forward(self, x):
+        x_se = torch.sigmoid(self.squeeze_sequence(F.adaptive_avg_pool2d(x, output_size=(1, 1))))
+        return torch.mul(x, x_se)
 
 
 # MBConv from above
