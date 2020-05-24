@@ -106,7 +106,7 @@ class ZeroShot:
                 # performs updates using calculated gradients
                 self.student_optimizer.step()
 
-            if (batch + 1) % 500 == 0:
+            if (batch + 1) % 10 == 0:
                 acc = self.test()
                 writeMetrics({"accuracy": acc}, self.acc_counter)
                 self.acc_counter +=1
@@ -117,7 +117,7 @@ class ZeroShot:
                     torch.save(self.generator.state_dict(), self.generator_save_path)
                     best_acc = acc
 
-            writeMetrics({"Student Loss": student_loss, "Teacher Loss": student_loss}, self.counter)
+            writeMetrics({"Student Loss": student_loss, "Generator Loss": generator_loss }, self.counter)
             self.counter +=1
             self.cosine_annealing_generator.step()
             self.cosine_annealing_student.step()
@@ -135,4 +135,4 @@ class ZeroShot:
                 running_acc += accuracy(student_logits.data, label)
                 count += 1
         
-        return running_acc/len(self.test_loader)
+        return running_acc/len(self.testloader)
