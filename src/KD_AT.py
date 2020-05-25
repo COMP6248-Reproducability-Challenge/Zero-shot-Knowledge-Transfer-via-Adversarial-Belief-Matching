@@ -56,22 +56,22 @@ class FewShotKT:
         # Use tqdm for progress bar
         accuracy_dict = {}
 
-        with tqdm(self.trainloader, total=len(self.trainloader), desc='train', position=0, leave=True) as t:
-            for epoch in range(self.num_epochs):
-                self.student_model.train()
-                self.train()
 
-                if epoch % self.log_num == 0:
-                    acc = self.test(epoch)
-                    accuracy_dict[epoch] = acc
-                    t.set_postfix(accuracy='{:05.3f}'.format(acc))
-                    t.update()
-                    self.save_model()
+        for epoch in range(self.num_epochs):
+            self.student_model.train()
+            self.train()
 
-                self.scheduler.step()
+            if epoch % self.log_num == 0:
+                acc = self.test(epoch)
+                accuracy_dict[epoch] = acc
+                log_accuracy("KD_AT.csv", accuracy_dict)
 
-            log_accuracy("KD_AT.csv", accuracy_dict)
-            plot_accuracy("KD_AT.csv")
+                self.save_model()
+
+            self.scheduler.step()
+
+
+        plot_accuracy("KD_AT.csv")
 
     def train(self):
         running_acc = running_loss = 0
