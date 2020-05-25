@@ -76,6 +76,7 @@ class ZeroShot:
 
     def train(self):
         best_acc = 0
+        accuracy_dict = {}
 
         for batch in tqdm(range(self.num_epochs)):
 
@@ -122,18 +123,18 @@ class ZeroShot:
                 # performs updates using calculated gradients
                 self.student_optimizer.step()
 
-            if (batch + 1) % 10 == 0:
+            if (batch + 1) % self.log_num == 0:
                 acc = self.test()
 
                 print(f"\nAccuracy: {acc:05.3f}")
                 print(f'Student Loss: {student_loss:05.3f}')
                 writeMetrics({"accuracy": acc}, self.acc_counter)
+                accuracy_dict[batch] = acc
+                log_accuracy("KD_AT.csv", accuracy_dict)
                 self.acc_counter += 1
+                self.save_model()
 
                 if acc > best_acc:
-                    best_acc = acc
-                    torch.save(self.student_model.state_dict(), self.student_save_path)
-                    torch.save(self.generator.state_dict(), self.generator_save_path)
                     best_acc = acc
 
             writeMetrics({"Student Loss": student_loss, "Generator Loss": generator_loss}, self.counter)
@@ -149,8 +150,15 @@ class ZeroShot:
                 data, label = data.to(self.device), label.to(self.device)
 
                 student_logits, *student_activations = self.student_model(data)
-    
+
                 running_acc += accuracy(student_logits.data, label)
                 count += 1
 
         return running_acc / len(self.testloader)
+
+
+    def save_model(self):
+
+        torch.save(self.student_model.state_dict(), self.student_save_path)
+        torch.save(self.generator.state_dict(), self.generator_save_path)
+
