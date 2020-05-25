@@ -57,7 +57,7 @@ class FewShotKT:
         accuracy_dict = {}
 
 
-        for epoch in tqdm(range(self.num_epochs)):
+        for epoch in tqdm(range(self.num_epochs), total=self.num_epochs):
             self.student_model.train()
             self.train()
 
