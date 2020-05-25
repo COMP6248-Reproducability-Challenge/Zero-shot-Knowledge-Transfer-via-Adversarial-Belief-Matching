@@ -57,7 +57,7 @@ class FewShotKT:
         accuracy_dict = {}
 
 
-        for epoch in range(self.num_epochs):
+        for epoch in tqdm(range(self.num_epochs)):
             self.student_model.train()
             self.train()
 
@@ -65,7 +65,7 @@ class FewShotKT:
                 acc = self.test(epoch)
                 accuracy_dict[epoch] = acc
                 log_accuracy("KD_AT.csv", accuracy_dict)
-
+                print(f"\nAccuracy: {acc:05.3f}")
                 self.save_model()
 
             self.scheduler.step()
