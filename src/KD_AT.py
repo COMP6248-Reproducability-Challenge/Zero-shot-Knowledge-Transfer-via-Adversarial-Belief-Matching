@@ -120,11 +120,10 @@ class FewShotKT:
         return (running_acc/count)
 
     def calculate_epochs(self):
-        num_epochs = 0
         if self.dataset == 'cifar10':
-            num_epochs = int(200 * (5000 / self.M))
+            num_epochs = int(200 * 50000 / (10 * self.M))
         else:
-            epochs = int(5000 * 100/ self.M)
+            epochs = int(73257 * 100/ (10 * self.M))
         return num_epochs
 
     def save_model(self):
