@@ -56,51 +56,51 @@ class FewShotKT:
         # Use tqdm for progress bar
         accuracy_dict = {}
 
-        
-        for epoch in range(self.num_epochs):
-            self.student_model.train()
-            self.train()
+        with tqdm(self.trainloader, total=len(self.trainloader), desc='train', position=0, leave=True) as t:
+            for epoch in range(self.num_epochs):
+                self.student_model.train()
+                self.train()
 
-            if epoch % self.log_num == 0:
-                acc = self.test(epoch)
-                accuracy_dict[epoch] = acc
-                self.save_model()
+                if epoch % self.log_num == 0:
+                    acc = self.test(epoch)
+                    accuracy_dict[epoch] = acc
+                    t.set_postfix(accuracy='{:05.3f}'.format(acc))
+                    t.update()
+                    self.save_model()
 
-            self.scheduler.step()
+                self.scheduler.step()
 
-        log_accuracy("KD_AT.csv", accuracy_dict)
-        plot_accuracy("KD_AT.csv")
+            log_accuracy("KD_AT.csv", accuracy_dict)
+            plot_accuracy("KD_AT.csv")
 
     def train(self):
         running_acc = running_loss = 0
 
-        with tqdm(self.trainloader, total=len(self.trainloader), desc='train', position=0, leave=True) as t:
-            for batch_num, input in enumerate(self.trainloader):
-                self.student_optimizer.zero_grad()
 
-                # move to GPU if available
-                train_batch, labels_batch = input
-                train_batch, labels_batch = train_batch.to(self.device), labels_batch.to(self.device)
+        for batch_num, input in enumerate(self.trainloader):
+            self.student_optimizer.zero_grad()
 
-                # compute model output, fetch teacher/student output, and compute KD loss
-                student_logits, *student_activations = self.student_model(train_batch)
-                teacher_logits, *teacher_activations = self.teacher_model(train_batch)
+            # move to GPU if available
+            train_batch, labels_batch = input
+            train_batch, labels_batch = train_batch.to(self.device), labels_batch.to(self.device)
 
-                # teacher/student outputs: logits, attention1, attention2, attention3
+            # compute model output, fetch teacher/student output, and compute KD loss
+            student_logits, *student_activations = self.student_model(train_batch)
+            teacher_logits, *teacher_activations = self.teacher_model(train_batch)
 
-                loss = KL_AT_loss(teacher_logits, student_logits, student_activations, teacher_activations, labels_batch)
-                loss.backward()
+            # teacher/student outputs: logits, attention1, attention2, attention3
 
-                running_loss += loss.data
-                running_acc += accuracy(student_logits.data, labels_batch)
-                writeMetrics({"accuracy": running_acc/(batch_num+1),
-                              "loss": running_loss/(batch_num+1)}, self.counter)
-                self.counter +=1
+            loss = KL_AT_loss(teacher_logits, student_logits, student_activations, teacher_activations, labels_batch)
+            loss.backward()
 
-                t.set_postfix(accuracy='{:05.3f}'.format(running_acc/(batch_num+1)), loss='{:05.3f}'.format(running_loss/(batch_num+1)))
-                t.update()
-                # performs updates using calculated gradients
-                self.student_optimizer.step()
+            running_loss += loss.data
+            running_acc += accuracy(student_logits.data, labels_batch)
+            writeMetrics({"accuracy": running_acc/(batch_num+1),
+                          "loss": running_loss/(batch_num+1)}, self.counter)
+            self.counter +=1
+
+            # performs updates using calculated gradients
+            self.student_optimizer.step()
 
     def test(self, epoch):
         self.student_model.eval()
