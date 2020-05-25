@@ -39,7 +39,7 @@ class FewShotKT:
         self.student_model.to(self.device)
         self.student_model.train()
 
-        self.log_num = 10
+        self.log_num = 1000
         self.num_epochs = self.calculate_epochs()
         self.counter = 0
 
@@ -64,8 +64,8 @@ class FewShotKT:
             if epoch % self.log_num == 0:
                 acc = self.test(epoch)
                 accuracy_dict[epoch] = acc
-                torch.save(self.student_model.state_dict(), self.save_path)
-            
+                self.save_model()
+
             self.scheduler.step()
 
         log_accuracy("KD_AT.csv", accuracy_dict)
@@ -126,4 +126,5 @@ class FewShotKT:
         return num_epochs
 
     def save_model(self):
-        pass
+
+        torch.save(self.student_model.state_dict(), self.save_path)

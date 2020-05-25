@@ -44,11 +44,11 @@ class ZeroShot:
         self.teacher_model.load_state_dict(checkpoint)
         self.teacher_model.eval()
 
-        self.student_model = ResNet.WideResNet(depth=config.student['depth'], num_classes=self.num_classes,
-                                               widen_factor=config.student['widen_factor'],
-                                               input_features=config.student['input_features'],
-                                               output_features=config.student['output_features'],
-                                               dropRate=config.student['dropRate'], strides=config.student['strides'])
+        self.student_model = ResNet.WideResNet(depth=config.student_rnn['depth'], num_classes=self.num_classes,
+                                               widen_factor=config.student_rnn['widen_factor'],
+                                               input_features=config.student_rnn['input_features'],
+                                               output_features=config.student_rnn['output_features'],
+                                               dropRate=config.student_rnn['dropRate'], strides=config.student['strides'])
         self.student_model.to(self.device)
         self.student_model.train()
 
