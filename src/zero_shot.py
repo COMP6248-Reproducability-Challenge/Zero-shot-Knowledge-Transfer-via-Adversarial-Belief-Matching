@@ -27,14 +27,14 @@ class ZeroShot:
 
         self.device = "cuda:0" if torch.cuda.is_available() else "cpu"
 
-        self.teacher_model = ResNet.WideResNet(depth=config.teacher['depth'], num_classes=self.num_classes,
-                                               widen_factor=config.teacher['widen_factor'],
-                                               input_features=config.teacher['input_features'],
-                                               output_features=config.teacher['output_features'],
-                                               dropRate=config.teacher['dropRate'], strides=config.teacher['strides'])
+        self.teacher_model = ResNet.WideResNet(depth=config.teacher_rnn['depth'], num_classes=self.num_classes,
+                                               widen_factor=config.teacher_rnn['widen_factor'],
+                                               input_features=config.teacher_rnn['input_features'],
+                                               output_features=config.teacher_rnn['output_features'],
+                                               dropRate=config.teacher_rnn['dropRate'], strides=config.teacher_rnn['strides'])
         self.teacher_model.to(self.device)
         
-        teacher_path = f"{config.save_path}/{self.dataset}-no_teacher-wrn-{config.teacher['depth']}-{config.teacher['widen_factor']}-{config.teacher['dropRate']}-seed{config.seed}.pth"
+        teacher_path = f"{config.save_path}/{self.dataset}-no_teacher-wrn-{config.teacher_rnn['depth']}-{config.teacher_rnn['widen_factor']}-{config.teacher_rnn['dropRate']}-seed{config.seed}.pth"
 
         if os.path.exists(teacher_path):
             checkpoint = torch.load(teacher_path, map_location=self.device)
@@ -68,10 +68,10 @@ class ZeroShot:
         self.num_epochs = 80000
 
         if config.downsample['action']:
-            self.student_save_path = f"{config.save_path}/{self.dataset}-{config.mode}-wrn_student-{config.student['depth']}-{config.student['widen_factor']}-{config.student['dropRate']}-down_sample{config.downsample['value']}-seed{config.seed}.pth"
+            self.student_save_path = f"{config.save_path}/{self.dataset}-{config.mode}-wrn_student-{config.student_rnn['depth']}-{config.student_rnn['widen_factor']}-{config.student_rnn['dropRate']}-down_sample{config.downsample['value']}-seed{config.seed}.pth"
             self.generator_save_path = f"{config.save_path}/{self.dataset}-{config.mode}-generator-down_sample{config.downsample['value']}-seed{config.seed}.pth"
         else:
-            self.student_save_path = f"{config.save_path}/{self.dataset}-{config.mode}-wrn_student-{config.student['depth']}-{config.student['widen_factor']}-{config.student['dropRate']}-seed{config.seed}.pth"
+            self.student_save_path = f"{config.save_path}/{self.dataset}-{config.mode}-wrn_student-{config.student_rnn['depth']}-{config.student_rnn['widen_factor']}-{config.student_rnn['dropRate']}-seed{config.seed}.pth"
             self.generator_save_path = f"{config.save_path}/{self.dataset}-{config.mode}-generator-seed{config.seed}.pth"
 
     def train(self):

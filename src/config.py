@@ -2,8 +2,9 @@ mode = "zero_shot"
 dataset = "cifar10"
 seed = 0
 save_path = "../PreTrainedModels"
+model_type = "rnn"
 
-teacher = dict(
+teacher_rnn = dict(
     depth = 40,
     widen_factor = 2,
     dropRate = 0.0,
@@ -12,7 +13,7 @@ teacher = dict(
     strides = [1, 2, 2]
 )
 
-student = dict(
+student_rnn = dict(
     depth = 16,
     widen_factor = 1,
     dropRate = 0.0,
