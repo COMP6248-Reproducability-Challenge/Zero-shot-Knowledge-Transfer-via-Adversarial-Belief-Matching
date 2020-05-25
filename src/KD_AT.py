@@ -112,8 +112,7 @@ class FewShotKT:
                 data, label = data.to(self.device), label.to(self.device)
 
                 student_logits, *student_activations = self.student_model(data)
-                teacher_logits, *teacher_activations = self.teacher_model(data)
-
+               
                 running_acc += accuracy(student_logits.data, label)
 
         print(f"Test accuracy: {running_acc/len(self.testloader)}")

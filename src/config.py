@@ -1,4 +1,4 @@
-mode = "zero_shot"
+mode = "kd_at"
 dataset = "cifar10"
 seed = 0
 save_path = "../PreTrainedModels"
@@ -28,5 +28,5 @@ generator = dict(
 
 downsample = dict(
     action=False,
-    value= 200
+    value= 10
 )
