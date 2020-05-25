@@ -18,8 +18,10 @@ class ZeroShot:
         self.ns = 10
         self.counter = 0
         self.acc_counter = 0
+        self.log_num = 10
+        self.num_epochs = 80000
 
-        self.total_batches = 65000
+
         self.dataset = config.dataset
 
         _, self.testloader, _, self.num_classes = dataloaders.transform_data(self.dataset, M=config.downsample['value'],
@@ -63,9 +65,7 @@ class ZeroShot:
         self.cosine_annealing_generator = optim.lr_scheduler.CosineAnnealingLR(self.generator_optimizer,
                                                                                self.total_batches)
 
-        self.log_num = 10
-        self.numGeneratorIterations = 5000
-        self.num_epochs = 80000
+
 
         if config.downsample['action']:
             self.student_save_path = f"{config.save_path}/{self.dataset}-{config.mode}-wrn_student-{config.student_rnn['depth']}-{config.student_rnn['widen_factor']}-{config.student_rnn['dropRate']}-down_sample{config.downsample['value']}-seed{config.seed}.pth"
@@ -77,7 +77,7 @@ class ZeroShot:
     def train(self):
         best_acc = 0
 
-        for batch in tqdm(range(self.total_batches)):
+        for batch in tqdm(range(self.num_epochs)):
 
             for i in range(self.ng):
                 self.generator_optimizer.zero_grad()
