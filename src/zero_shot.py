@@ -50,20 +50,20 @@ class ZeroShot:
                                                widen_factor=config.student_rnn['widen_factor'],
                                                input_features=config.student_rnn['input_features'],
                                                output_features=config.student_rnn['output_features'],
-                                               dropRate=config.student_rnn['dropRate'], strides=config.student['strides'])
+                                               dropRate=config.student_rnn['dropRate'], strides=config.student_rnn['strides'])
         self.student_model.to(self.device)
         self.student_model.train()
 
         # Load teacher and initialise student network
         self.student_optimizer = torch.optim.Adam(self.student_model.parameters(), lr=2e-3)
-        self.cosine_annealing_student = optim.lr_scheduler.CosineAnnealingLR(self.student_optimizer, self.total_batches)
+        self.cosine_annealing_student = optim.lr_scheduler.CosineAnnealingLR(self.student_optimizer, self.num_epochs)
 
         self.generator = Generator.Generator(100)
         self.generator.to(self.device)
         self.generator.train()
         self.generator_optimizer = optim.Adam(self.generator.parameters(), lr=1e-3)
         self.cosine_annealing_generator = optim.lr_scheduler.CosineAnnealingLR(self.generator_optimizer,
-                                                                               self.total_batches)
+                                                                               self.num_epochs)
 
 
 
@@ -149,8 +149,7 @@ class ZeroShot:
                 data, label = data.to(self.device), label.to(self.device)
 
                 student_logits, *student_activations = self.student_model(data)
-                teacher_logits, *teacher_activations = self.teacher_model(data)
-
+    
                 running_acc += accuracy(student_logits.data, label)
                 count += 1
 
