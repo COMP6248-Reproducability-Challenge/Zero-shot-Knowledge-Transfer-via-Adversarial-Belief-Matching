@@ -4,6 +4,7 @@ import torch
 import utils
 from tqdm import tqdm
 import config
+import EfficientNet
 
 class No_teacher:
     def __init__(self):
@@ -11,18 +12,33 @@ class No_teacher:
         self.dataset = config.dataset
         self.train_loader, self.test_loader, self.validation_loader, self.num_classes = dataloaders.transform_data(self.dataset, 
                                                                     M= config.downsample['value'], down= config.downsample['action'])
+        self.model_type = config.model_type
 
-        self.model = ResNet.WideResNet(depth=config.teacher_rnn['depth'], num_classes=self.num_classes, widen_factor=config.teacher_rnn['widen_factor'], 
+        if self.model_type == "rnn":
+            self.model = ResNet.WideResNet(depth=config.teacher_rnn['depth'], num_classes=self.num_classes, widen_factor=config.teacher_rnn['widen_factor'], 
                     input_features=config.teacher_rnn['input_features'], output_features=config.teacher_rnn['output_features'], 
                     dropRate=config.teacher_rnn['dropRate'], strides=config.teacher_rnn['strides'])
-        self.model.to(self.device)
+            
+            if config.downsample['action']:
+                self.save_path = f"{config.save_path}/{self.dataset}-{config.mode}-wrn-{config.teacher_rnn['depth']}-{config.teacher_rnn['widen_factor']}-{config.teacher_rnn['dropRate']}-down_sample{config.downsample['value']}-seed{config.seed}.pth"
+            else:
+                self.save_path = f"{config.save_path}/{self.dataset}-{config.mode}-wrn-{config.teacher_rnn['depth']}-{config.teacher_rnn['widen_factor']}-{config.teacher_rnn['dropRate']}-seed{config.seed}.pth"
+        
+        elif self.model_type == "efficient_net":
+            self.model = EfficientNet.EfficientNet(config.teacher_efficient_net['input_features'], config.teacher_efficient_net['model'])
 
-        if config.downsample['action']:
-            self.save_path = f"{config.save_path}/{self.dataset}-{config.mode}-wrn-{config.teacher_rnn['depth']}-{config.teacher_rnn['widen_factor']}-{config.teacher_rnn['dropRate']}-down_sample{config.downsample['value']}-seed{config.seed}.pth"
+            if config.downsample['action']:
+                self.save_path = f"{config.save_path}/{self.dataset}-{config.mode}-efficient_net-down_sample{config.downsample['value']}-seed{config.seed}.pth"
+            else:
+                self.save_path = f"{config.save_path}/{self.dataset}-{config.mode}-efficient_net-seed{config.seed}.pth"
+        
         else:
-            self.save_path = f"{config.save_path}/{self.dataset}-{config.mode}-wrn-{config.teacher_rnn['depth']}-{config.teacher_rnn['widen_factor']}-{config.teacher_rnn['dropRate']}-seed{config.seed}.pth"
+            raise ValueError('Invalid model type')
+        
+        self.model.to(self.device)
     
     def train(self):
+        print(f"Training {self.model_type}")
         self.optimiser = torch.optim.SGD(self.model.parameters(), lr=0.1, momentum=0.9, nesterov=True, weight_decay=5e-4)
         self.loss_function = torch.nn.CrossEntropyLoss()
 
@@ -51,7 +67,11 @@ class No_teacher:
                     
                     data, labels = batch
                     data, labels = data.to(self.device), labels.to(self.device)
-                    logits, _, _, _ = self.model(data)
+                    
+                    if self.model_type == "rnn":
+                        logits, _, _, _ = self.model(data)
+                    else:
+                        logits, _, _, _, _, _, _, _, _, _ = self.model(data)
 
                     loss = self.loss_function(logits, labels)
                     loss.backward()
@@ -84,7 +104,11 @@ class No_teacher:
                     data, labels = batch
                     data, labels = data.to(self.device), labels.to(self.device)
 
-                    logits, _, _, _ = self.model(data)
+                    if self.model_type == "rnn":
+                        logits, _, _, _ = self.model(data)
+                    else:
+                        logits, _, _, _, _, _, _, _, _, _ = self.model(data)
+                    
                     loss = self.loss_function(logits, labels)
 
                     running_loss += loss.data
@@ -104,7 +128,10 @@ class No_teacher:
                     data, labels = batch
                     data, labels = data.to(self.device), labels.to(self.device)
 
-                    logits, _, _, _ = self.model(data)
+                    if self.model_type == "rnn":
+                        logits, _, _, _ = self.model(data)
+                    else:
+                        logits, _, _, _, _, _, _, _, _, _ = self.model(data)
 
                     running_acc += utils.accuracy(logits, labels)
 
