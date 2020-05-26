@@ -35,7 +35,7 @@ def KL_AT_loss(student_logits, teacher_logits, student_activations, teacher_acti
 
 
 def KL_Loss(student_logits, teacher_logits, temperature=1.0):
-    kl_loss = F.kl_div(F.log_softmax(student_logits / temperature, dim=1),
+    kl_loss = torch.nn.KLDivLoss()(F.log_softmax(student_logits / temperature, dim=1),
                        F.softmax(teacher_logits / temperature, dim=1))
 
     return kl_loss
