@@ -10,7 +10,10 @@ def transform_data(dataset, M= 0, train_batch_size= 128, test_batch_size= 10, va
     trainset, testset = load_data(dataset)
 
     if down:
-        trainset = downsample(trainset, M)
+        if dataset == "cifar10":
+            trainset = downsample(trainset, M)
+        else:
+            trainset = downsampleSVHN(trainset, M)
 
     num_classes = 10
 
@@ -72,7 +75,33 @@ def load_data(dataset):
         raise ValueError('Dataset not specified.')
 
 
+
+
+def downsampleSVHN(dataset, M):
+
+    data_collected = [0] * 10
+    total_collected = 0
+    success = 10 * M
+    indices = []
+    label_check = {0:0,1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0,9:0}
+    #temp_trainloader = torch.utils.data.DataLoader(dataset, batch_size=1, shuffle=True, num_workers=4)
+
+    for index, (_, label) in enumerate(dataset):
+        if data_collected[label] < M:
+            label_check[label] +=1
+            data_collected[label] += 1
+            indices.append(index)
+            total_collected += 1
+        if total_collected == success:
+            break
+
+    data_subset = Subset(dataset, indices)
+    return data_subset
+
+
 def downsample(dataset, M):
+
+
     labels = dataset.class_to_idx
     label_counts = {key:0 for key in labels.values()}
     samples_index = []
@@ -89,3 +118,6 @@ def downsample(dataset, M):
 
     data_subset = Subset(dataset, samples_index)
     return data_subset
+
+
+
