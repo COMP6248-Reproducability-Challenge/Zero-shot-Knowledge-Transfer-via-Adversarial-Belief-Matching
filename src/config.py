@@ -1,8 +1,8 @@
-mode = "zero_shot"
+mode = "no_teacher"
 dataset = "cifar10"
 seed = 0
 save_path = "../PreTrainedModels"
-model_type = "rnn"
+model_type = "efficient_net"
 
 teacher_rnn = dict(
     depth = 40,
@@ -20,6 +20,16 @@ student_rnn = dict(
     input_features = 3,
     output_features = 16,
     strides = [1, 2, 2]
+)
+
+teacher_efficient_net = dict(
+    input_features = 3,
+    model = 'b7'
+)
+
+student_efficient_net = dict(
+    input_features = 3,
+    model = 'b7'
 )
 
 generator = dict(
