@@ -10,6 +10,10 @@ class No_teacher:
     def __init__(self):
         self.device = "cuda:0" if torch.cuda.is_available() else "cpu"
         self.dataset = config.dataset
+
+        if config.downsample['action']:
+            self.M = config.downsample['value']
+
         self.train_loader, self.test_loader, self.validation_loader, self.num_classes = dataloaders.transform_data(self.dataset, 
                                                                     M= config.downsample['value'], down= config.downsample['action'])
         self.model_type = config.model_type
@@ -44,8 +48,18 @@ class No_teacher:
 
         if self.dataset == "cifar10":
             num_epochs= 200
+            if config.downsample['action']:
+                if config.downsample['value'] == 0:
+                    num_epochs = 0
+                else:
+                    num_epochs = int(num_epochs * 50000 / (10 * self.M))
         else:
             num_epochs= 100
+            if config.downsample['action']:
+                if config.downsample['value'] == 0:
+                    num_epochs = 0
+                else:
+                    num_epochs = int(num_epochs * 73257 / (10 * self.M))
 
         scheduler = torch.optim.lr_scheduler.MultiStepLR(self.optimiser, milestones=[0.3*num_epochs - 1,0.6*num_epochs - 1,0.8*num_epochs - 1], gamma=0.2)
         save_epochs = [50,99,150,199]

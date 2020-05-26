@@ -29,7 +29,7 @@ teacher_efficient_net = dict(
 
 student_efficient_net = dict(
     input_features = 3,
-    model = 'b7'
+    model = 'b2'
 )
 
 generator = dict(
