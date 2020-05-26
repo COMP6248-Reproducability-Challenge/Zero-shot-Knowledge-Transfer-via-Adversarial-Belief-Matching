@@ -79,7 +79,7 @@ class ZeroShot:
 
         for batch in tqdm(range(self.num_epochs)):
 
-            for i in range(self.ng):
+            for _ in range(self.ng):
                 self.generator_optimizer.zero_grad()
                 # generate guassian noise
                 z = torch.randn((128, 100)).to(self.device)
@@ -100,17 +100,12 @@ class ZeroShot:
                 self.generator_optimizer.step()
 
             psuedo_datapoint = psuedo_datapoint.detach()
+
             with torch.no_grad():
                 teacher_outputs = self.teacher_model(psuedo_datapoint)
 
-            for i in range(self.ns):
+            for _ in range(self.ns):
                 self.student_optimizer.zero_grad()
-
-                # generate guassian noise
-                # z = torch.randn((128, 100)).to(self.device)
-
-                # get generator output
-                # psuedo_datapoint = self.generator(z)
 
                 # teacher/student outputs: logits, attention1, attention2, attention3
                 # compute model output, fetch teacher/student output, and compute KD loss
