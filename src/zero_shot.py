@@ -21,7 +21,6 @@ class ZeroShot:
         self.log_num = 1000
         self.num_epochs = 80000
 
-
         self.dataset = config.dataset
 
         _, self.testloader, _, self.num_classes = dataloaders.transform_data(self.dataset, M=config.downsample['value'],
@@ -33,9 +32,10 @@ class ZeroShot:
                                                widen_factor=config.teacher_rnn['widen_factor'],
                                                input_features=config.teacher_rnn['input_features'],
                                                output_features=config.teacher_rnn['output_features'],
-                                               dropRate=config.teacher_rnn['dropRate'], strides=config.teacher_rnn['strides'])
+                                               dropRate=config.teacher_rnn['dropRate'],
+                                               strides=config.teacher_rnn['strides'])
         self.teacher_model.to(self.device)
-        
+
         teacher_path = f"{config.save_path}/{self.dataset}-no_teacher-wrn-{config.teacher_rnn['depth']}-{config.teacher_rnn['widen_factor']}-{config.teacher_rnn['dropRate']}-seed{config.seed}.pth"
 
         if os.path.exists(teacher_path):
@@ -50,7 +50,8 @@ class ZeroShot:
                                                widen_factor=config.student_rnn['widen_factor'],
                                                input_features=config.student_rnn['input_features'],
                                                output_features=config.student_rnn['output_features'],
-                                               dropRate=config.student_rnn['dropRate'], strides=config.student_rnn['strides'])
+                                               dropRate=config.student_rnn['dropRate'],
+                                               strides=config.student_rnn['strides'])
         self.student_model.to(self.device)
         self.student_model.train()
 
@@ -64,8 +65,6 @@ class ZeroShot:
         self.generator_optimizer = optim.Adam(self.generator.parameters(), lr=1e-3)
         self.cosine_annealing_generator = optim.lr_scheduler.CosineAnnealingLR(self.generator_optimizer,
                                                                                self.num_epochs)
-
-
 
         if config.downsample['action']:
             self.student_save_path = f"{config.save_path}/{self.dataset}-{config.mode}-wrn_student-{config.student_rnn['depth']}-{config.student_rnn['widen_factor']}-{config.student_rnn['dropRate']}-down_sample{config.downsample['value']}-seed{config.seed}.pth"
@@ -93,7 +92,7 @@ class ZeroShot:
                 student_logits = self.student_model(psuedo_datapoint)[0]
                 teacher_logits = self.teacher_model(psuedo_datapoint)[0]
 
-                generator_loss = -(KL_Loss(teacher_logits, student_logits))
+                generator_loss = -(KL_Loss(student_logits, teacher_logits))
                 generator_loss.backward()
 
                 # performs updates using calculated gradients
@@ -155,7 +154,6 @@ class ZeroShot:
                 count += 1
 
         return running_acc / len(self.testloader)
-
 
     def save_model(self):
 
