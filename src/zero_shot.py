@@ -130,7 +130,7 @@ class ZeroShot:
                 print(f'Student Loss: {student_loss:05.3f}')
                 writeMetrics({"accuracy": acc}, self.acc_counter)
                 accuracy_dict[batch] = acc
-                log_accuracy("KD_AT.csv", accuracy_dict)
+                log_accuracy("zero_shot.csv", accuracy_dict)
                 self.acc_counter += 1
                 self.save_model()
 
