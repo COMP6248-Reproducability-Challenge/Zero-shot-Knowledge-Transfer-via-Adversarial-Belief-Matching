@@ -1,6 +1,7 @@
 import dataloaders
 import ResNet
 import torch
+import torch.nn as nn
 import utils
 from tqdm import tqdm
 import config
@@ -39,6 +40,12 @@ class No_teacher:
         
         else:
             raise ValueError('Invalid model type')
+
+        if torch.cuda.device_count() > 1:
+            print(f"Using {torch.cuda.device_count()} GPUs")
+            self.model = nn.DataParallel(self.model)
+        else:
+            print(f"Using {self.device}!")
         
         self.model.to(self.device)
     
