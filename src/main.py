@@ -4,9 +4,13 @@ import KD_AT
 import argparse
 import utils
 import config
+import os
+import pathlib
 
 if __name__ == "__main__":
     utils.setup_seeds(config.seed)
+
+    os.chdir(pathlib.Path(__file__).parent.absolute())
 
     mode = config.mode
 

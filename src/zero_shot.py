@@ -18,8 +18,10 @@ class ZeroShot:
         self.ns = 10
         self.counter = 0
         self.acc_counter = 0
+        self.log_num = 1000
+        self.num_epochs = 80000
 
-        self.total_batches = 65000
+
         self.dataset = config.dataset
 
         _, self.testloader, _, self.num_classes = dataloaders.transform_data(self.dataset, M=config.downsample['value'],
@@ -44,28 +46,26 @@ class ZeroShot:
         self.teacher_model.load_state_dict(checkpoint)
         self.teacher_model.eval()
 
-        self.student_model = ResNet.WideResNet(depth=config.student['depth'], num_classes=self.num_classes,
-                                               widen_factor=config.student['widen_factor'],
-                                               input_features=config.student['input_features'],
-                                               output_features=config.student['output_features'],
-                                               dropRate=config.student['dropRate'], strides=config.student['strides'])
+        self.student_model = ResNet.WideResNet(depth=config.student_rnn['depth'], num_classes=self.num_classes,
+                                               widen_factor=config.student_rnn['widen_factor'],
+                                               input_features=config.student_rnn['input_features'],
+                                               output_features=config.student_rnn['output_features'],
+                                               dropRate=config.student_rnn['dropRate'], strides=config.student_rnn['strides'])
         self.student_model.to(self.device)
         self.student_model.train()
 
         # Load teacher and initialise student network
         self.student_optimizer = torch.optim.Adam(self.student_model.parameters(), lr=2e-3)
-        self.cosine_annealing_student = optim.lr_scheduler.CosineAnnealingLR(self.student_optimizer, self.total_batches)
+        self.cosine_annealing_student = optim.lr_scheduler.CosineAnnealingLR(self.student_optimizer, self.num_epochs)
 
         self.generator = Generator.Generator(100)
         self.generator.to(self.device)
         self.generator.train()
         self.generator_optimizer = optim.Adam(self.generator.parameters(), lr=1e-3)
         self.cosine_annealing_generator = optim.lr_scheduler.CosineAnnealingLR(self.generator_optimizer,
-                                                                               self.total_batches)
+                                                                               self.num_epochs)
 
-        self.log_num = 10
-        self.numGeneratorIterations = 5000
-        self.num_epochs = 80000
+
 
         if config.downsample['action']:
             self.student_save_path = f"{config.save_path}/{self.dataset}-{config.mode}-wrn_student-{config.student_rnn['depth']}-{config.student_rnn['widen_factor']}-{config.student_rnn['dropRate']}-down_sample{config.downsample['value']}-seed{config.seed}.pth"
@@ -76,8 +76,9 @@ class ZeroShot:
 
     def train(self):
         best_acc = 0
+        accuracy_dict = {}
 
-        for batch in tqdm(range(self.total_batches)):
+        for batch in tqdm(range(self.num_epochs)):
 
             for i in range(self.ng):
                 self.generator_optimizer.zero_grad()
@@ -122,18 +123,18 @@ class ZeroShot:
                 # performs updates using calculated gradients
                 self.student_optimizer.step()
 
-            if (batch + 1) % 10 == 0:
+            if (batch + 1) % self.log_num == 0:
                 acc = self.test()
 
                 print(f"\nAccuracy: {acc:05.3f}")
                 print(f'Student Loss: {student_loss:05.3f}')
                 writeMetrics({"accuracy": acc}, self.acc_counter)
+                accuracy_dict[batch] = acc
+                log_accuracy("zero_shot.csv", accuracy_dict)
                 self.acc_counter += 1
+                self.save_model()
 
                 if acc > best_acc:
-                    best_acc = acc
-                    torch.save(self.student_model.state_dict(), self.student_save_path)
-                    torch.save(self.generator.state_dict(), self.generator_save_path)
                     best_acc = acc
 
             writeMetrics({"Student Loss": student_loss, "Generator Loss": generator_loss}, self.counter)
@@ -149,9 +150,15 @@ class ZeroShot:
                 data, label = data.to(self.device), label.to(self.device)
 
                 student_logits, *student_activations = self.student_model(data)
-                teacher_logits, *teacher_activations = self.teacher_model(data)
 
                 running_acc += accuracy(student_logits.data, label)
                 count += 1
 
         return running_acc / len(self.testloader)
+
+
+    def save_model(self):
+
+        torch.save(self.student_model.state_dict(), self.student_save_path)
+        torch.save(self.generator.state_dict(), self.generator_save_path)
+
