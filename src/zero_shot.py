@@ -18,7 +18,7 @@ class ZeroShot:
         self.ns = 10
         self.counter = 0
         self.acc_counter = 0
-        self.log_num = 10
+        self.log_num = 1000
         self.num_epochs = 80000
 
 
