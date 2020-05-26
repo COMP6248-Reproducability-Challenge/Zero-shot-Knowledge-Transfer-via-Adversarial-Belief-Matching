@@ -96,6 +96,7 @@ class ZeroShot:
                 generator_loss.backward()
 
                 # performs updates using calculated gradients
+                torch.nn.utils.clip_grad_norm_(self.generator.parameters(), 5)
                 self.generator_optimizer.step()
 
             psuedo_datapoint = psuedo_datapoint.detach()
@@ -120,6 +121,7 @@ class ZeroShot:
 
                 student_loss.backward()
                 # performs updates using calculated gradients
+                torch.nn.utils.clip_grad_norm_(self.student_model.parameters(), 5)
                 self.student_optimizer.step()
 
             if (batch + 1) % self.log_num == 0:
