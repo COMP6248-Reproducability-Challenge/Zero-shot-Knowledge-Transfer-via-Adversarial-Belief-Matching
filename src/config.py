@@ -3,6 +3,7 @@ dataset = "cifar10"
 seed = 0
 save_path = "../PreTrainedModels"
 model_type = "efficient_net"
+test_mode = False
 
 teacher_rnn = dict(
     depth = 40,

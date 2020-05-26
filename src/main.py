@@ -16,7 +16,9 @@ if __name__ == "__main__":
 
     if mode == "no_teacher":
         no_teacher = No_Teacher.No_teacher()
-        no_teacher.train()
+        if not config.test_mode:
+            no_teacher.train()
+        no_teacher.test()
     elif mode == "zero_shot":
         zeros = zero_shot.ZeroShot()
         zeros.train()

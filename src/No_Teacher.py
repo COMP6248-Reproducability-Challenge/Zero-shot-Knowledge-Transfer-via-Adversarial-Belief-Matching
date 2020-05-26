@@ -5,6 +5,7 @@ import utils
 from tqdm import tqdm
 import config
 import EfficientNet
+import os
 
 class No_teacher:
     def __init__(self):
@@ -62,7 +63,7 @@ class No_teacher:
                     num_epochs = int(num_epochs * 73257 / (10 * self.M))
 
         scheduler = torch.optim.lr_scheduler.MultiStepLR(self.optimiser, milestones=[0.3*num_epochs - 1,0.6*num_epochs - 1,0.8*num_epochs - 1], gamma=0.2)
-        save_epochs = [50,99,150,199]
+        save_epochs = [0.2*num_epochs, 0.4*num_epochs, 0.6*num_epochs, 0.8*num_epochs, 0.99*num_epochs]
         
         for epoch in range(num_epochs):
             print(f"Epoch {epoch + 1}/{num_epochs}")
@@ -104,7 +105,6 @@ class No_teacher:
                 self.validation()
         
         torch.save(self.model.state_dict(), self.save_path)
-        self.test()
     
     def validation(self):
         self.model.eval()
@@ -132,6 +132,12 @@ class No_teacher:
                     t.update()
         
     def test(self):
+        if os.path.exists(self.save_path):
+            checkpoint = torch.load(self.save_path, map_location=self.device)
+        else:
+            raise ValueError('No file with the pretrained model selected')
+
+        self.model.load_state_dict(checkpoint)
         self.model.eval()
 
         running_acc = 0
