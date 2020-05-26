@@ -135,7 +135,7 @@ class EfficientNet(nn.Module):
         super(EfficientNet, self).__init__()
 
         architecture = {
-            'b5': (1.2, 1.4, 300, 0.3),
+            'b2': (1.1, 1.2, 260, 0.3),
             'b7': (2.0, 3.1, 600, 0.5),
         }
 

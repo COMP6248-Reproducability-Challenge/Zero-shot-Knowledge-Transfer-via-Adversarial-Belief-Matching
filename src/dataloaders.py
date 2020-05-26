@@ -27,7 +27,11 @@ def transform_data(dataset, M= 0, train_batch_size= 128, test_batch_size= 10, va
         validation_loader = None
 
     # create data loaders
-    trainloader = DataLoader(trainset, batch_size= train_batch_size, shuffle=True)
+    if M != 0:
+        trainloader = DataLoader(trainset, batch_size= train_batch_size, shuffle=True)
+    else:
+        trainloader = None
+    
     testloader = DataLoader(testset, batch_size= test_batch_size, shuffle=True)
 
     return trainloader, testloader, validation_loader, num_classes
