@@ -62,7 +62,7 @@ class ZeroShot:
         elif self.model_type == "efficient_net":
             self.teacher_model = EfficientNet.EfficientNet(config.teacher_efficient_net['input_features'], config.teacher_efficient_net['model'])
 
-            teacher_path = f"{config.save_path}/{self.dataset}-{config.mode}-efficient_net-seed{config.seed}.pth"
+            teacher_path = f"{config.save_path}/{self.dataset}-no_teacher-efficient_net-seed{config.seed}.pth"
 
             if os.path.exists(teacher_path):
                 checkpoint = torch.load(teacher_path, map_location=self.device)
@@ -71,7 +71,6 @@ class ZeroShot:
 
             self.teacher_model.load_state_dict(checkpoint)
             
-
             self.student_model = EfficientNet.EfficientNet(config.student_efficient_net['input_features'], config.student_efficient_net['model'])
 
             if config.downsample['action']:
