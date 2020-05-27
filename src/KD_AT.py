@@ -2,7 +2,7 @@ import logging
 import numpy as np
 import torch
 from tqdm import tqdm
-from utils import KL_AT_loss, accuracy, log_accuracy, plot_accuracy, writeMetrics
+from utils import KL_AT_loss, accuracy, log_accuracy, plot_accuracy
 import os
 import ResNet
 from torch import optim
@@ -95,14 +95,22 @@ class FewShotKT:
 
             running_loss += loss.data
             running_acc += accuracy(student_logits.data, labels_batch)
-            writeMetrics({"accuracy": running_acc/(batch_num+1),
-                          "loss": running_loss/(batch_num+1)}, self.counter)
+            #writeMetrics({"accuracy": running_acc/(batch_num+1),
+             #             "loss": running_loss/(batch_num+1)}, self.counter)
             self.counter +=1
 
             # performs updates using calculated gradients
             self.student_optimizer.step()
 
-    def test(self, epoch):
+    def test(self, epoch, test=False):
+
+        if test == True:
+            if os.path.exists(self.save_path):
+                checkpoint = torch.load(self.save_path, map_location=self.device)
+            else:
+                raise ValueError('No file with the pretrained model selected')
+
+            self.student_model.load_state_dict(checkpoint)
         self.student_model.eval()
 
         running_acc = 0

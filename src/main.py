@@ -21,10 +21,15 @@ if __name__ == "__main__":
         no_teacher.test()
     elif mode == "zero_shot":
         zeros = zero_shot.ZeroShot()
-        zeros.train()
+        if not config.test_mode:
+            zeros.train()
+        zeros.test(test=True)
+       
     elif mode == "kd_at":
         kd_at = KD_AT.FewShotKT()
-        kd_at.train_KT_AT()
+        if not config.test_mode:
+            kd_at.train_KT_AT()
+        kd_at.test(1, test=True)
     else:
         raise ValueError('Not valid mode')
 

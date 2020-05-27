@@ -138,7 +138,16 @@ class ZeroShot:
             self.cosine_annealing_generator.step()
             self.cosine_annealing_student.step()
 
-    def test(self):
+    def test(self, test=False):
+
+        if test == True:
+            if os.path.exists(self.save_path):
+                checkpoint = torch.load(self.save_path, map_location=self.device)
+            else:
+                raise ValueError('No file with the pretrained model selected')
+
+            self.student_model.load_state_dict(checkpoint)
+        self.student_model.eval()
         running_acc = count = 0
 
         with torch.no_grad():
