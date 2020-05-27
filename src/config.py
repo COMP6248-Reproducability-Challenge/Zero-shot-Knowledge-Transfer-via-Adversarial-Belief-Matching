@@ -1,9 +1,9 @@
-mode = "zero_shot"
-dataset = "svhn" #cifar10 or svhn
+mode = "no_teacher"
+dataset = "fashion_mnist" #cifar10, svhn or fashion_mnist
 seed = 0
 save_path = "../PreTrainedModels"
 model_type = "rnn" #rnn or efficient_net
-test_mode = True
+test_mode = False
 
 teacher_rnn = dict(
     depth = 40,

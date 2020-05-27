@@ -34,7 +34,6 @@ def transform_data(dataset, M = 0, train_batch_size= 128, test_batch_size= 10, v
     else:
         trainloader = DataLoader(trainset, batch_size= train_batch_size, shuffle=True)
         
-    
     testloader = DataLoader(testset, batch_size= test_batch_size, shuffle=True)
 
     return trainloader, testloader, validation_loader, num_classes
@@ -70,19 +69,20 @@ def load_data(dataset):
         ])
 
         trainset = torchvision.datasets.SVHN(root='./data', split='train', download=True, transform=transform)
-        testset = torchvision.datasets.SVHN(root='./data', split='test', download=True, transform=transform)
+        testset = torchvision.datasets.SVHN(root='./data', split='test', download=True, transform=transform) 
 
         return trainset, testset
     
     elif dataset == "fashion_mnist":
         transform = transforms.Compose([
-            transforms.Resize((32*32), interpolation=Image.NEAREST),
+            transforms.Grayscale(3),
+            transforms.Resize((32,32), interpolation=Image.NEAREST),
             transforms.ToTensor(),
-            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+            transforms.Normalize((0.5,), (0.5,))
         ])
 
-        trainset = torchvision.datasets.FashionMNIST(root='./data/FashionMNIST',train=True,download=True,transform=transform)
-        testset = torchvision.datasets.FashionMNIST(root='./data/FashionMNIST',train=False,download=True,transform=transform)
+        trainset = torchvision.datasets.FashionMNIST(root='./data',train=True,download=True,transform=transform)
+        testset = torchvision.datasets.FashionMNIST(root='./data',train=False,download=True,transform=transform)
 
         return trainset, testset
 
