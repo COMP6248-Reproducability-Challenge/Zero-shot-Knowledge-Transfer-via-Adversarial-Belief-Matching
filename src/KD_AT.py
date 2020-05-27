@@ -2,7 +2,7 @@ import logging
 import numpy as np
 import torch
 from tqdm import tqdm
-from utils import KL_AT_loss, accuracy, log_accuracy, plot_accuracy, calculate_epochs
+import utils
 import os
 import ResNet
 from torch import optim
@@ -78,7 +78,7 @@ class FewShotKT:
         self.student_model.train()
 
         self.log_num = 1000
-        self.num_epochs = calculate_epochs(self.dataset, config.downsample['action'], self.M)
+        self.num_epochs = utils.calculate_epochs(self.dataset, config.downsample['action'], self.M)
         self.counter = 0
 
         self.student_optimizer = torch.optim.SGD(self.student_model.parameters(), lr=0.1, momentum=0.9, weight_decay=5e-4, nesterov=True)
@@ -97,18 +97,16 @@ class FewShotKT:
             if epoch % self.log_num == 0:
                 acc = self.test(epoch)
                 accuracy_dict[epoch] = acc
-                log_accuracy("KD_AT.csv", accuracy_dict)
+                utils.log_accuracy("KD_AT.csv", accuracy_dict)
                 print(f"\nAccuracy: {acc:05.3f}")
                 self.save_model()
 
             self.scheduler.step()
 
-
-        plot_accuracy("KD_AT.csv")
+        utils.plot_accuracy("KD_AT.csv")
 
     def train(self):
         running_acc = running_loss = 0
-
 
         for batch_num, input in enumerate(self.trainloader):
             self.student_optimizer.zero_grad()
@@ -123,11 +121,11 @@ class FewShotKT:
 
             # teacher/student outputs: logits, attention1, attention2, attention3
 
-            loss = KL_AT_loss(teacher_logits, student_logits, student_activations, teacher_activations, labels_batch)
+            loss = utils.KL_AT_loss(teacher_logits, student_logits, student_activations, teacher_activations, labels_batch)
             loss.backward()
 
             running_loss += loss.data
-            running_acc += accuracy(student_logits.data, labels_batch)
+            running_acc += utils.accuracy(student_logits.data, labels_batch)
             #writeMetrics({"accuracy": running_acc/(batch_num+1),
              #             "loss": running_loss/(batch_num+1)}, self.counter)
             self.counter +=1
@@ -136,10 +134,9 @@ class FewShotKT:
             self.student_optimizer.step()
 
     def test(self, epoch, test=False):
-
         if test == True:
-            if os.path.exists(self.save_path):
-                checkpoint = torch.load(self.save_path, map_location=self.device)
+            if os.path.exists(self.student_save_path):
+                checkpoint = torch.load(self.student_save_path, map_location=self.device)
             else:
                 raise ValueError('No file with the pretrained model selected')
 
@@ -147,17 +144,16 @@ class FewShotKT:
         self.student_model.eval()
 
         running_acc = 0
-        count = len(self.testloader)
         with torch.no_grad():
             for data, label in self.testloader:
                 data, label = data.to(self.device), label.to(self.device)
 
                 student_logits, *student_activations = self.student_model(data)
                
-                running_acc += accuracy(student_logits.data, label)
+                running_acc += utils.accuracy(student_logits.data, label)
 
         print(f"Test accuracy: {running_acc/len(self.testloader)}")
-        return (running_acc/count)
+        return (running_acc/len(self.testloader))
 
     def save_model(self):
         torch.save(self.student_model.state_dict(), self.save_path)

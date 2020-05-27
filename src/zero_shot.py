@@ -2,7 +2,7 @@ import logging
 import numpy as np
 import torch
 from tqdm import tqdm
-from utils import *
+import utils
 import ResNet
 from torch import optim
 from dataloaders import transform_data
@@ -120,7 +120,7 @@ class ZeroShot:
                 student_logits = self.student_model(psuedo_datapoint)[0]
                 teacher_logits = self.teacher_model(psuedo_datapoint)[0]
 
-                generator_loss = -(KL_Loss(student_logits, teacher_logits))
+                generator_loss = -(utils.KL_Loss(student_logits, teacher_logits))
                 generator_loss.backward()
 
                 # performs updates using calculated gradients
@@ -140,7 +140,7 @@ class ZeroShot:
                 student_logits = self.student_model(psuedo_datapoint)
 
                 # student_loss = KL_Loss(teacher_logits, teacher_outputs)
-                student_loss = student_loss_zero_shot(student_logits, teacher_outputs)
+                student_loss = utils.student_loss_zero_shot(student_logits, teacher_outputs)
 
                 student_loss.backward()
                 # performs updates using calculated gradients
@@ -152,16 +152,16 @@ class ZeroShot:
 
                 print(f"\nAccuracy: {acc:05.3f}")
                 print(f'Student Loss: {student_loss:05.3f}')
-                writeMetrics({"accuracy": acc}, self.acc_counter)
+                utils.writeMetrics({"accuracy": acc}, self.acc_counter)
                 accuracy_dict[batch] = acc
-                log_accuracy("zero_shot.csv", accuracy_dict)
+                utils.log_accuracy("zero_shot.csv", accuracy_dict)
                 self.acc_counter += 1
                 self.save_model()
 
                 if acc > best_acc:
                     best_acc = acc
 
-            writeMetrics({"Student Loss": student_loss, "Generator Loss": generator_loss}, self.counter)
+            utils.writeMetrics({"Student Loss": student_loss, "Generator Loss": generator_loss}, self.counter)
             self.counter += 1
             self.cosine_annealing_generator.step()
             self.cosine_annealing_student.step()
@@ -175,7 +175,8 @@ class ZeroShot:
 
             self.student_model.load_state_dict(checkpoint)
         self.student_model.eval()
-        running_acc = count = 0
+
+        running_acc =  0
 
         with torch.no_grad():
             for data, label in self.testloader:
@@ -183,8 +184,7 @@ class ZeroShot:
 
                 student_logits, *student_activations = self.student_model(data)
 
-                running_acc += accuracy(student_logits.data, label)
-                count += 1
+                running_acc += utils.accuracy(student_logits.data, label)
 
         final_accuracy = running_acc / len(self.testloader)
         if test == True:
@@ -192,7 +192,6 @@ class ZeroShot:
         return final_accuracy
 
     def save_model(self):
-
         torch.save(self.student_model.state_dict(), self.student_save_path)
         torch.save(self.generator.state_dict(), self.generator_save_path)
 
