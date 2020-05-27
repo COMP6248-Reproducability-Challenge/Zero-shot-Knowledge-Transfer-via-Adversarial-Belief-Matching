@@ -18,6 +18,7 @@ class FewShotKT:
         self.trainloader, self.testloader, self.validationloader, self.num_classes = dataloaders.transform_data(self.dataset, 
                                                     M= config.downsample['value'], down= config.downsample['action'])
         self.device = "cuda:0" if torch.cuda.is_available() else "cpu"
+        self.model_type = config.model_type
 
         if self.model_type == "rnn":
             self.teacher_model = ResNet.WideResNet(depth=config.teacher_rnn['depth'], num_classes=self.num_classes,
