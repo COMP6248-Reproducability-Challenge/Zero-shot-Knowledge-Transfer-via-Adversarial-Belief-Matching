@@ -5,12 +5,14 @@ from torchvision.datasets import CIFAR10
 from torchvision.datasets import SVHN
 import torch
 from torch.utils.data.dataset import random_split
+from PIL import Image
 
 def transform_data(dataset, M = 0, train_batch_size= 128, test_batch_size= 10, validation= False, down= False):
+    dataset = dataset.lower()
     trainset, testset = load_data(dataset)
 
     if down:
-        if dataset == "cifar10":
+        if dataset == "cifar10" or dataset == "fashion_mnist":
             trainset = downsample(trainset, M)
         else:
             trainset = downsampleSVHN(trainset, M)
@@ -39,7 +41,7 @@ def transform_data(dataset, M = 0, train_batch_size= 128, test_batch_size= 10, v
 
 
 def load_data(dataset):
-    if dataset.lower() == 'cifar10':
+    if dataset == 'cifar10':
         # convert each image to tensor format
         transform_train = transforms.Compose([
             transforms.Pad(4),
@@ -61,7 +63,7 @@ def load_data(dataset):
 
         return trainset, testset
 
-    elif dataset.lower() == 'svhn':
+    elif dataset == 'svhn':
         transform = transforms.Compose([
             transforms.ToTensor(),
             transforms.Normalize((0.4377, 0.4438, 0.4728), (0.1980, 0.2010, 0.1970))
@@ -72,10 +74,20 @@ def load_data(dataset):
 
         return trainset, testset
     
+    elif dataset == "fashion_mnist":
+        transform = transforms.Compose([
+            transforms.Resize((32*32), interpolation=Image.NEAREST),
+            transforms.ToTensor(),
+            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+        ])
+
+        trainset = torchvision.datasets.FashionMNIST(root='./data/FashionMNIST',train=True,download=True,transform=transform)
+        testset = torchvision.datasets.FashionMNIST(root='./data/FashionMNIST',train=False,download=True,transform=transform)
+
+        return trainset, testset
+
     else:
         raise ValueError('Dataset not specified.')
-
-
 
 
 def downsampleSVHN(dataset, M):
@@ -101,8 +113,6 @@ def downsampleSVHN(dataset, M):
 
 
 def downsample(dataset, M):
-
-
     labels = dataset.class_to_idx
     label_counts = {key:0 for key in labels.values()}
     samples_index = []

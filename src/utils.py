@@ -12,6 +12,31 @@ def setup_seeds(seed):
     torch.manual_seed(seed)
     torch.backends.cudnn.deterministic = True
 
+def calculate_epochs(dataset, downsample, downsamplevalue):
+    if dataset == "cifar10":
+        num_epochs= 200
+        if downsample:
+            if downsamplevalue == 0:
+                num_epochs = 0
+            else:
+                num_epochs = int(num_epochs * 50000 / (10 * downsamplevalue))
+    elif dataset == "svhn":
+        num_epochs= 100
+        if downsample:
+            if downsamplevalue == 0:
+                num_epochs = 0
+            else:
+                num_epochs = int(num_epochs * 73257 / (10 * downsamplevalue))
+    else:
+        num_epochs= 120
+        if downsample:
+            if downsamplevalue == 0:
+                num_epochs = 0
+            else:
+                num_epochs = int(num_epochs * 60000 / (10 * downsamplevalue))
+    
+    return num_epochs
+
 
 def KL_AT_loss(student_logits, teacher_logits, student_activations, teacher_activations, labels,
                temperature=1.0, alpha=0.9, beta=1000):
@@ -112,8 +137,6 @@ def plot_accuracy(logfile_name, save_plot=True):
         plt.savefig(f'./plots/{logfile_name.split(".")[0]}.png')
 
 
-
 def writeMetrics(value_dict, step):
-
     for key, value in value_dict.items():
         writer.add_scalar(key, value, step)

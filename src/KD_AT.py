@@ -2,7 +2,7 @@ import logging
 import numpy as np
 import torch
 from tqdm import tqdm
-from utils import KL_AT_loss, accuracy, log_accuracy, plot_accuracy
+from utils import KL_AT_loss, accuracy, log_accuracy, plot_accuracy, calculate_epochs
 import os
 import ResNet
 from torch import optim
@@ -78,7 +78,7 @@ class FewShotKT:
         self.student_model.train()
 
         self.log_num = 1000
-        self.num_epochs = self.calculate_epochs()
+        self.num_epochs = calculate_epochs(self.dataset, config.downsample['action'], self.M)
         self.counter = 0
 
         self.student_optimizer = torch.optim.SGD(self.student_model.parameters(), lr=0.1, momentum=0.9, weight_decay=5e-4, nesterov=True)
@@ -158,24 +158,6 @@ class FewShotKT:
 
         print(f"Test accuracy: {running_acc/len(self.testloader)}")
         return (running_acc/count)
-
-    def calculate_epochs(self):
-        if self.dataset == "cifar10":
-            num_epochs= 200
-            if config.downsample['action']:
-                if config.downsample['value'] == 0:
-                    num_epochs = 0
-                else:
-                    num_epochs = int(num_epochs * 50000 / (10 * self.M))
-        else:
-            num_epochs= 100
-            if config.downsample['action']:
-                if config.downsample['value'] == 0:
-                    num_epochs = 0
-                else:
-                    num_epochs = int(num_epochs * 73257 / (10 * self.M))
-        
-        return num_epochs
 
     def save_model(self):
         torch.save(self.student_model.state_dict(), self.save_path)

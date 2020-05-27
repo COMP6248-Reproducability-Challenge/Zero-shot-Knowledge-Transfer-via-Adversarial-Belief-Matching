@@ -12,9 +12,7 @@ class No_teacher:
     def __init__(self):
         self.device = "cuda:0" if torch.cuda.is_available() else "cpu"
         self.dataset = config.dataset
-
-        if config.downsample['action']:
-            self.M = config.downsample['value']
+        self.M = config.downsample['value']
 
         self.train_loader, self.test_loader, self.validation_loader, self.num_classes = dataloaders.transform_data(self.dataset, 
                                                                     M= config.downsample['value'], down= config.downsample['action'])
@@ -54,20 +52,7 @@ class No_teacher:
         self.optimiser = torch.optim.SGD(self.model.parameters(), lr=0.1, momentum=0.9, nesterov=True, weight_decay=5e-4)
         self.loss_function = torch.nn.CrossEntropyLoss()
 
-        if self.dataset == "cifar10":
-            num_epochs= 200
-            if config.downsample['action']:
-                if config.downsample['value'] == 0:
-                    num_epochs = 0
-                else:
-                    num_epochs = int(num_epochs * 50000 / (10 * self.M))
-        else:
-            num_epochs= 100
-            if config.downsample['action']:
-                if config.downsample['value'] == 0:
-                    num_epochs = 0
-                else:
-                    num_epochs = int(num_epochs * 73257 / (10 * self.M))
+        num_epochs = utils.calculate_epochs(self.dataset, config.downsample['action'], self.M)
 
         scheduler = torch.optim.lr_scheduler.MultiStepLR(self.optimiser, milestones=[0.3*num_epochs - 1,0.6*num_epochs - 1,0.8*num_epochs - 1], gamma=0.2)
         save_epochs = [0.2*num_epochs, 0.4*num_epochs, 0.6*num_epochs, 0.8*num_epochs, 0.99*num_epochs]
