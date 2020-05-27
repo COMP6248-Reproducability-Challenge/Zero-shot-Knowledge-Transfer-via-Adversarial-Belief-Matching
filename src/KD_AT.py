@@ -156,4 +156,4 @@ class FewShotKT:
         return (running_acc/len(self.testloader))
 
     def save_model(self):
-        torch.save(self.student_model.state_dict(), self.save_path)
+        torch.save(self.student_model.state_dict(), self.student_save_path)

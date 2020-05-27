@@ -38,6 +38,6 @@ generator = dict(
 )
 
 downsample = dict(
-    action=False,
+    action=True,
     value= 10
 )
