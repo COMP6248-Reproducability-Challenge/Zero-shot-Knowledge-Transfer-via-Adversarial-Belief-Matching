@@ -74,11 +74,7 @@ class No_teacher:
                     
                     data, labels = batch
                     data, labels = data.to(self.device), labels.to(self.device)
-                    
-                    if self.model_type == "rnn":
-                        logits, _, _, _ = self.model(data)
-                    else:
-                        logits, _, _, _, _, _, _, _, _, _ = self.model(data)
+                    logits, *_ = self.model(data)
 
                     loss = self.loss_function(logits, labels)
                     loss.backward()
@@ -110,11 +106,7 @@ class No_teacher:
                     data, labels = batch
                     data, labels = data.to(self.device), labels.to(self.device)
 
-                    if self.model_type == "rnn":
-                        logits, _, _, _ = self.model(data)
-                    else:
-                        logits, _, _, _, _, _, _, _, _, _ = self.model(data)
-                    
+                    logits, *_ = self.model(data)
                     loss = self.loss_function(logits, labels)
 
                     running_loss += loss.data
@@ -140,10 +132,7 @@ class No_teacher:
                     data, labels = batch
                     data, labels = data.to(self.device), labels.to(self.device)
 
-                    if self.model_type == "rnn":
-                        logits, _, _, _ = self.model(data)
-                    else:
-                        logits, _, _, _, _, _, _, _, _, _ = self.model(data)
+                    logits, *_ = self.model(data)
 
                     running_acc += utils.accuracy(logits, labels)
 

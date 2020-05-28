@@ -93,7 +93,7 @@ class BeliefMatch:
                 count += 1
                 mte_n = 0
 
-                for other_label in range(0,10):
+                for other_label in range(10):
                     if other_label == label:
                         continue
                     
@@ -128,7 +128,7 @@ class BeliefMatch:
                 t.set_postfix(MeanTransitionError='{:05.3f}'.format(mte/count))
                 t.update()
 
-        mte /= N
+        mte /= count
         print(f"Mean Transition Error for {config.mode} on {self.dataset} = {mte}")
 
 
