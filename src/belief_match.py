@@ -119,6 +119,7 @@ class BeliefMatch:
                     mte_n += mte_k/K
                 
                 mte += mte_n/(C-1)
+                t.update()
 
         mte /= N
         print(f"Mean Transition Error for {config.mode} on {self.dataset} = {mte}")
