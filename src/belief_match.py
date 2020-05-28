@@ -75,7 +75,7 @@ class BeliefMatch:
             for image, label in self.testloader:
                 if count == N:
                     break
-
+                
                 image, label = image.to(self.device), label.to(self.device)
 
                 teacher_output, *_ = self.teacher_model(image)
@@ -94,6 +94,8 @@ class BeliefMatch:
                     if other_label == label:
                         continue
                     
+                    other_label = torch.Tensor([other_label]).long().to(self.device)
+
                     image_adv = image.detach().clone()
                     image_adv.requires_grad = True
 
@@ -109,7 +111,7 @@ class BeliefMatch:
                         loss.backward()
 
                         image_adv.data -= xi * image_adv.grad.data
-                        image_adv.grad.data.zero()
+                        image_adv.grad.data.zero_()
 
                         pj_teacher = nn.functional.softmax(teacher_output, 1)[0][other_label].item()
                         pj_student = nn.functional.softmax(student_output, 1)[0][other_label].item()
