@@ -1,5 +1,6 @@
-mode = "no_teacher"
-dataset = "fashion_mnist" #cifar10, svhn or fashion_mnist
+goal = "belief_match" #belief match or classification
+mode = "kd_at" #zero_shot or no_teacher or kd_at
+dataset = "svhn" #cifar10, svhn or fashion_mnist
 seed = 0
 save_path = "../PreTrainedModels"
 model_type = "rnn" #rnn or efficient_net
