@@ -105,13 +105,13 @@ class BeliefMatch:
 
                     mte_k = 0
                     for _ in range(K):
-                        self.teacher_model.zero_grad()
+                        self.student_model.zero_grad()
 
-                        teacher_output, *_ = self.teacher_model(image_adv)
+                        student_output, *_ = self.student_model(image_adv)
                         with torch.no_grad():
-                            student_output, *_ = self.student_model(image_adv)
+                            teacher_output, *_ = self.teacher_model(image_adv)
 
-                        loss = criterion(teacher_output, other_label)
+                        loss = criterion(student_output, other_label)
                         loss.backward()
 
                         image_adv.data -= xi * image_adv.grad.data
