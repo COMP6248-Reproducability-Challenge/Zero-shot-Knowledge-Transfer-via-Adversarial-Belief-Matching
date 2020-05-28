@@ -61,6 +61,9 @@ class BeliefMatch:
         self.student_model.load_state_dict(checkpoint)
         self.teacher_model.eval()
         self.student_model.eval()
+
+        self.teacher_model.to(self.device)
+        self.student_model.to(self.device)
     
     def calculate(self):
         xi = 1
@@ -98,6 +101,7 @@ class BeliefMatch:
 
                     image_adv = image.detach().clone()
                     image_adv.requires_grad = True
+                    image_adv = image_adv.to(self.device)
 
                     mte_k = 0
                     for _ in range(K):
