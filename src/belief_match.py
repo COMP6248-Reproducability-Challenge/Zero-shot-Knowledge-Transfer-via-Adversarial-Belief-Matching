@@ -125,6 +125,7 @@ class BeliefMatch:
                     mte_n += mte_k/K
                 
                 mte += mte_n/(C-1)
+                t.set_postfix(MeanTransitionError='{:05.3f}'.format(mte/count))
                 t.update()
 
         mte /= N
