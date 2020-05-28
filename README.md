@@ -1,33 +1,31 @@
-# Project Title
-
-COMP6248 Reproducibility Project
+# COMP6248 Reproducibility Project
 
 ## About
 
 Zero-Shot Knowledge Transfer via Adversarial Belief Matching Reproducibility Project
 
-### Prerequisites
+### Enviroment
 
-TODO
+- Python 3.8
+- Tensorboard x.x.x for logging
+- Scipy
+- torchbearer
 
-```
-Give examples
-```
-
-### Installing
-
-TODO
+Install any python modules with
 
 ```
-TODO
+pip install requirements.txt
 ```
 
+## Running Zero shot knowledge transfer
 
-End with an example of getting some data out of the system or using it for a little demo
+```
+```
 
-## Running the tests
+## Running Few shot knowledge transfer
 
-Unit Tests? - cba
+```
+```
 
 
 ## Built With
