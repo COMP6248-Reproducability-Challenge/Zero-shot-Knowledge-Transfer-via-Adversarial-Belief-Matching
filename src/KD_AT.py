@@ -15,7 +15,6 @@ import EfficientNet
 
 class FewShotKT:
     def __init__(self):
-
         self.dataset = config.dataset
         self.M = config.downsample['value']
         self.trainloader, self.testloader, self.validationloader, self.num_classes = dataloaders.transform_data(
