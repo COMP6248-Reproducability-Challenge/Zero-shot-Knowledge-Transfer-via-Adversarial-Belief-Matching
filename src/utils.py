@@ -5,12 +5,34 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 from torch.utils.tensorboard import SummaryWriter
+import config
+import ResNet
 writer = SummaryWriter()
 
 def setup_seeds(seed):
     np.random.seed(seed)
     torch.manual_seed(seed)
     torch.backends.cudnn.deterministic = True
+
+def load_teacher_rnn():
+    teacher = ResNet.WideResNet(depth=config.teacher_rnn['depth'], num_classes=self.num_classes,
+                                               widen_factor=config.teacher_rnn['widen_factor'],
+                                               input_features=config.teacher_rnn['input_features'],
+                                               output_features=config.teacher_rnn['output_features'],
+                                               dropRate=config.teacher_rnn['dropRate'],
+                                               strides=config.teacher_rnn['strides'])
+    
+    return teacher
+
+def load_student_rnn():
+    student = ResNet.WideResNet(depth=config.student_rnn['depth'], num_classes=self.num_classes,
+                                               widen_factor=config.student_rnn['widen_factor'],
+                                               input_features=config.student_rnn['input_features'],
+                                               output_features=config.student_rnn['output_features'],
+                                               dropRate=config.student_rnn['dropRate'],
+                                               strides=config.student_rnn['strides'])
+    
+    return student
 
 def calculate_epochs(dataset, downsample, downsamplevalue):
     if dataset == "cifar10":
@@ -28,7 +50,7 @@ def calculate_epochs(dataset, downsample, downsamplevalue):
             else:
                 num_epochs = int(num_epochs * 73257 / (10 * downsamplevalue))
     else:
-        num_epochs= 120
+        num_epochs= 170
         if downsample:
             if downsamplevalue == 0:
                 num_epochs = 0

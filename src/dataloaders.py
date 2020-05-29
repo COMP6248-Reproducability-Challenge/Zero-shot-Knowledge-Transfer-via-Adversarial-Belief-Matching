@@ -128,6 +128,7 @@ def downsample(dataset, M):
                 samples_index.append(inx)
 
     data_subset = Subset(dataset, samples_index)
+    
     return data_subset
 
 

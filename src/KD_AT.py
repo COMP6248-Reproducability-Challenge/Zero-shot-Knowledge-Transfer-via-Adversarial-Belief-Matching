@@ -4,7 +4,6 @@ import torch
 from tqdm import tqdm
 import utils
 import os
-import ResNet
 from torch import optim
 import dataloaders
 import config
@@ -21,13 +20,7 @@ class FewShotKT:
         self.model_type = config.model_type
 
         if self.model_type == "rnn":
-            self.teacher_model = ResNet.WideResNet(depth=config.teacher_rnn['depth'], num_classes=self.num_classes,
-                                               widen_factor=config.teacher_rnn['widen_factor'],
-                                               input_features=config.teacher_rnn['input_features'],
-                                               output_features=config.teacher_rnn['output_features'],
-                                               dropRate=config.teacher_rnn['dropRate'],
-                                               strides=config.teacher_rnn['strides'])
-
+            self.teacher_model = utils.load_teacher_rnn()
             teacher_path = f"{config.save_path}/{self.dataset}-no_teacher-wrn-{config.teacher_rnn['depth']}-{config.teacher_rnn['widen_factor']}-{config.teacher_rnn['dropRate']}-seed{config.seed}.pth"
 
             if os.path.exists(teacher_path):
@@ -37,14 +30,7 @@ class FewShotKT:
 
             self.teacher_model.load_state_dict(checkpoint)
             
-
-            self.student_model = ResNet.WideResNet(depth=config.student_rnn['depth'], num_classes=self.num_classes,
-                                               widen_factor=config.student_rnn['widen_factor'],
-                                               input_features=config.student_rnn['input_features'],
-                                               output_features=config.student_rnn['output_features'],
-                                               dropRate=config.student_rnn['dropRate'],
-                                               strides=config.student_rnn['strides'])
-
+            self.student_model = utils.load_student_rnn()
             if config.downsample['action']:
                 self.student_save_path = f"{config.save_path}/{self.dataset}-{config.mode}-wrn_student-{config.teacher_rnn['depth']}-{config.teacher_rnn['widen_factor']}-{config.student_rnn['depth']}-{config.student_rnn['widen_factor']}-{config.student_rnn['dropRate']}-down_sample{config.downsample['value']}-seed{config.seed}.pth"
             else:

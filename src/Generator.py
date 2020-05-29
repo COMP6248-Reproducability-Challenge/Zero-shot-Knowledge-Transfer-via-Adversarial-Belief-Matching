@@ -1,11 +1,10 @@
 # Background from https://blog.usejournal.com/train-your-first-gan-model-from-scratch-using-pytorch-9b72987fd2c0
 # based on documentation of page https://github.com/polo5/ZeroShotKnowledgeTransfer/blob/master/models/generator.py
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-
-# "We use a generic generator with only three convolutional layers"
 class Generator(nn.Module):
 
     def __init__(self, input_dim):
@@ -38,12 +37,3 @@ class Generator(nn.Module):
         out = self.linear(x)
         out = out.view((-1,128,8,8))
         return self.layers(out)
-
-    def print_shape(self, x):
-        """
-        For debugging purposes
-        """
-        act = x
-        for layer in self.layers:
-            act = layer(act)
-            print('\n', layer, '---->', act.shape)
