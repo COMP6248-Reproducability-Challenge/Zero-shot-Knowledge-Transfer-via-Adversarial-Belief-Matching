@@ -2,3 +2,7 @@ pytorch
 torchvision
 torchsummary
 torchbearer
+tensorboard
+tqdm
+scipy
+matplotlib
