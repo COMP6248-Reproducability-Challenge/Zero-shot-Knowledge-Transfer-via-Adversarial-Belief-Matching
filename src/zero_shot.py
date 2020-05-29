@@ -124,10 +124,10 @@ class ZeroShot:
 
                 # teacher/student outputs: logits, attention1, attention2, attention3
                 # compute model output, fetch teacher/student output, and compute KD loss
-                student_logits = self.student_model(psuedo_datapoint)
+                student_outputs = self.student_model(psuedo_datapoint)
 
                 # student_loss = KL_Loss(teacher_logits, teacher_outputs)
-                student_loss = utils.student_loss_zero_shot(student_logits, teacher_outputs)
+                student_loss = utils.student_loss_zero_shot(student_outputs, teacher_outputs)
 
                 student_loss.backward()
                 # performs updates using calculated gradients

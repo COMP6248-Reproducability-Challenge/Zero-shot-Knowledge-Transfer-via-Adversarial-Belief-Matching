@@ -9,6 +9,7 @@ import config
 import ResNet
 writer = SummaryWriter()
 
+
 def setup_seeds(seed):
     np.random.seed(seed)
     torch.manual_seed(seed)
@@ -36,14 +37,14 @@ def load_student_rnn():
 
 def calculate_epochs(dataset, downsample, downsamplevalue):
     if dataset == "cifar10":
-        num_epochs= 200
+        num_epochs = 200
         if downsample:
             if downsamplevalue == 0:
                 num_epochs = 0
             else:
                 num_epochs = int(num_epochs * 50000 / (10 * downsamplevalue))
     elif dataset == "svhn":
-        num_epochs= 100
+        num_epochs = 100
         if downsample:
             if downsamplevalue == 0:
                 num_epochs = 0
@@ -56,7 +57,7 @@ def calculate_epochs(dataset, downsample, downsamplevalue):
                 num_epochs = 0
             else:
                 num_epochs = int(num_epochs * 60000 / (10 * downsamplevalue))
-    
+
     return num_epochs
 
 
@@ -83,12 +84,16 @@ def KL_AT_loss(student_logits, teacher_logits, student_activations, teacher_acti
 
 def KL_Loss(student_logits, teacher_logits, temperature=1.0):
     kl_loss = torch.nn.KLDivLoss()(F.log_softmax(student_logits / temperature, dim=1),
-                       F.softmax(teacher_logits / temperature, dim=1))
+                                   F.softmax(teacher_logits / temperature, dim=1))
 
     return kl_loss
 
 
 def student_loss_zero_shot(student_outputs, teacher_outputs, b=250):
+    """
+    Taken from hhttps://github.com/AlexandrosFerles/NIPS_2019_Reproducibilty_Challenge_Zero-shot_Knowledge_Transfer_via_Adversarial_Belief_Matching
+    """
+
     student_out, student_activations = student_outputs[0], student_outputs[1:]
     teacher_out, teacher_activations = teacher_outputs[0], teacher_outputs[1:]
 
@@ -104,7 +109,6 @@ def student_loss_zero_shot(student_outputs, teacher_outputs, b=250):
 def attention(x):
     """
     Taken from https://github.com/szagoruyko/attention-transfer
-    :param x = activations
     """
     return F.normalize(x.pow(2).mean(1).view(x.size(0), -1))
 
@@ -112,8 +116,6 @@ def attention(x):
 def attention_diff(x, y):
     """
     Taken from https://github.com/szagoruyko/attention-transfer
-    :param x = activations
-    :param y = activations
     """
     return (attention(x) - attention(y)).pow(2).mean()
 
