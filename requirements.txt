@@ -1,8 +1,8 @@
-pytorch
+torch
 torchvision
-torchsummary
 torchbearer
 tensorboard
 tqdm
 scipy
 matplotlib
+
