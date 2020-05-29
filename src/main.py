@@ -29,7 +29,6 @@ if __name__ == "__main__":
             if not config.test_mode:
                 zeros.train()
             zeros.test(test=True)
-        
         elif mode == "kd_at":
             kd_at = KD_AT.FewShotKT()
             if not config.test_mode:

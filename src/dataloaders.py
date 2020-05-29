@@ -5,8 +5,24 @@ from torch.utils.data import DataLoader, Subset
 from torch.utils.data.dataset import random_split
 from torchvision.datasets import CIFAR10
 
-
 def transform_data(dataset, M=0, train_batch_size=128, test_batch_size=10, validation=False, down=False):
+    """Gets data from the selected dataset and puts it into DataLoaders, with the option of 
+    downsampling the data with M samples per class.
+
+    Arguments:
+        dataset {string} -- The pretended dataset
+
+    Keyword Arguments:
+        M {int} -- Downsample value (default: {0})
+        train_batch_size {int} -- Size of training batch (default: {128})
+        test_batch_size {int} -- Size of test batch (default: {10})
+        validation {bool} -- Create a valiation set (default: {False})
+        down {bool} -- Execute downsample (default: {False})
+
+    Returns:
+        {DataLoader}, {DataLoader}, {DataLoader}, {int} -- Training, Testing and Validation dataloaders and the number of classes.
+    """
+
     dataset = dataset.lower()
     trainset, testset = load_data(dataset)
 

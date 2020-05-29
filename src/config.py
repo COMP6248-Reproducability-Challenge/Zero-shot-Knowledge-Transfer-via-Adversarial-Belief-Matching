@@ -1,4 +1,4 @@
-goal = "classification" #belief match or classification
+goal = "classification" #belief_match or classification
 mode = "kd_at" #zero_shot or no_teacher or kd_at
 dataset = "cifar10" #cifar10, svhn or fashion_mnist
 seed = 0

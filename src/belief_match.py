@@ -56,6 +56,8 @@ class BeliefMatch:
         self.student_model.to(self.device)
     
     def calculate(self):
+        """Calculates the Mean Transistion Error (MTE)
+        """        
         xi = 1
         K = 100
         N = 1000

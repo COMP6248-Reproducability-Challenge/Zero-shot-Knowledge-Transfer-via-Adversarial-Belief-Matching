@@ -153,6 +153,17 @@ class ZeroShot:
             self.cosine_annealing_student.step()
 
     def test(self, test=False):
+        """Runs the model on test data.
+
+        Keyword Arguments:
+            test {bool} -- If it is being used in Test Mode. If so it needs to load the model from memory (default: {False})
+
+        Raises:
+            ValueError: If the pretrained model loaded from memory in Test Mode is not found
+
+        Returns:
+            {int} -- Accuracy on test data
+        """        
         if test == True:
             if os.path.exists(self.student_save_path):
                 checkpoint = torch.load(self.student_save_path, map_location=self.device)

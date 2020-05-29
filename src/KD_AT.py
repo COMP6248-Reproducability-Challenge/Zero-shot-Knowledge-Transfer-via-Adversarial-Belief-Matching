@@ -99,7 +99,7 @@ class FewShotKT:
 
         utils.plot_accuracy("KD_AT.csv")
 
-    def train(self):
+    def train(self):       
         running_acc = running_loss = 0
 
         for batch_num, input in enumerate(self.trainloader):
@@ -121,14 +121,26 @@ class FewShotKT:
 
             running_loss += loss.data
             running_acc += utils.accuracy(student_logits.data, labels_batch)
-            # writeMetrics({"accuracy": running_acc/(batch_num+1),
-            #             "loss": running_loss/(batch_num+1)}, self.counter)
             self.counter += 1
 
             # performs updates using calculated gradients
             self.student_optimizer.step()
 
     def test(self, epoch, test=False):
+        """Runs the model on test data.
+
+        Arguments:
+            epoch {int} -- Current Epoch
+
+        Keyword Arguments:
+            test {bool} -- If it is being used in Test Mode. If so it needs to load the model from memory (default: {False})
+
+        Raises:
+            ValueError: If the pretrained model loaded from memory in Test Mode is not found
+
+        Returns:
+            {int} -- Accuracy on test data
+        """        
         if test == True:
             if os.path.exists(self.student_save_path):
                 checkpoint = torch.load(self.student_save_path, map_location=self.device)
