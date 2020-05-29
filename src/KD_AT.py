@@ -1,32 +1,34 @@
-import logging
-import numpy as np
-import torch
-from tqdm import tqdm
-import utils
 import os
-import ResNet
+
+import torch
 from torch import optim
-import dataloaders
-import config
+from tqdm import tqdm
+
 import EfficientNet
+import ResNet
+import config
+import dataloaders
+import utils
+
 
 class FewShotKT:
     def __init__(self):
 
         self.dataset = config.dataset
         self.M = config.downsample['value']
-        self.trainloader, self.testloader, self.validationloader, self.num_classes = dataloaders.transform_data(self.dataset, 
-                                                    M= config.downsample['value'], down= config.downsample['action'])
+        self.trainloader, self.testloader, self.validationloader, self.num_classes = dataloaders.transform_data(
+            self.dataset,
+            M=config.downsample['value'], down=config.downsample['action'])
         self.device = "cuda:0" if torch.cuda.is_available() else "cpu"
         self.model_type = config.model_type
 
         if self.model_type == "rnn":
             self.teacher_model = ResNet.WideResNet(depth=config.teacher_rnn['depth'], num_classes=self.num_classes,
-                                               widen_factor=config.teacher_rnn['widen_factor'],
-                                               input_features=config.teacher_rnn['input_features'],
-                                               output_features=config.teacher_rnn['output_features'],
-                                               dropRate=config.teacher_rnn['dropRate'],
-                                               strides=config.teacher_rnn['strides'])
+                                                   widen_factor=config.teacher_rnn['widen_factor'],
+                                                   input_features=config.teacher_rnn['input_features'],
+                                                   output_features=config.teacher_rnn['output_features'],
+                                                   dropRate=config.teacher_rnn['dropRate'],
+                                                   strides=config.teacher_rnn['strides'])
 
             teacher_path = f"{config.save_path}/{self.dataset}-no_teacher-wrn-{config.teacher_rnn['depth']}-{config.teacher_rnn['widen_factor']}-{config.teacher_rnn['dropRate']}-seed{config.seed}.pth"
 
@@ -36,22 +38,22 @@ class FewShotKT:
                 raise ValueError('No file with the pretrained model selected')
 
             self.teacher_model.load_state_dict(checkpoint)
-            
 
             self.student_model = ResNet.WideResNet(depth=config.student_rnn['depth'], num_classes=self.num_classes,
-                                               widen_factor=config.student_rnn['widen_factor'],
-                                               input_features=config.student_rnn['input_features'],
-                                               output_features=config.student_rnn['output_features'],
-                                               dropRate=config.student_rnn['dropRate'],
-                                               strides=config.student_rnn['strides'])
+                                                   widen_factor=config.student_rnn['widen_factor'],
+                                                   input_features=config.student_rnn['input_features'],
+                                                   output_features=config.student_rnn['output_features'],
+                                                   dropRate=config.student_rnn['dropRate'],
+                                                   strides=config.student_rnn['strides'])
 
             if config.downsample['action']:
                 self.student_save_path = f"{config.save_path}/{self.dataset}-{config.mode}-wrn_student-{config.teacher_rnn['depth']}-{config.teacher_rnn['widen_factor']}-{config.student_rnn['depth']}-{config.student_rnn['widen_factor']}-{config.student_rnn['dropRate']}-down_sample{config.downsample['value']}-seed{config.seed}.pth"
             else:
                 self.student_save_path = f"{config.save_path}/{self.dataset}-{config.mode}-wrn_student-{config.teacher_rnn['depth']}-{config.teacher_rnn['widen_factor']}-{config.student_rnn['depth']}-{config.student_rnn['widen_factor']}-{config.student_rnn['dropRate']}-seed{config.seed}.pth"
-        
+
         elif self.model_type == "efficient_net":
-            self.teacher_model = EfficientNet.EfficientNet(config.teacher_efficient_net['input_features'], config.teacher_efficient_net['model'])
+            self.teacher_model = EfficientNet.EfficientNet(config.teacher_efficient_net['input_features'],
+                                                           config.teacher_efficient_net['model'])
 
             teacher_path = f"{config.save_path}/{self.dataset}-no_teacher-efficient_net-seed{config.seed}.pth"
 
@@ -62,7 +64,8 @@ class FewShotKT:
 
             self.teacher_model.load_state_dict(checkpoint)
 
-            self.student_model = EfficientNet.EfficientNet(config.student_efficient_net['input_features'], config.student_efficient_net['model'])
+            self.student_model = EfficientNet.EfficientNet(config.student_efficient_net['input_features'],
+                                                           config.student_efficient_net['model'])
 
             if config.downsample['action']:
                 self.student_save_path = f"{config.save_path}/{self.dataset}-{config.mode}-efficient_net_student-down_sample{config.downsample['value']}-seed{config.seed}.pth"
@@ -70,8 +73,7 @@ class FewShotKT:
                 self.student_save_path = f"{config.save_path}/{self.dataset}-{config.mode}-efficient_net_student-seed{config.seed}.pth"
         else:
             raise ValueError('Invalid model type')
-            
-        
+
         self.teacher_model.to(self.device)
         self.teacher_model.eval()
         self.student_model.to(self.device)
@@ -81,14 +83,17 @@ class FewShotKT:
         self.num_epochs = utils.calculate_epochs(self.dataset, config.downsample['action'], self.M)
         self.counter = 0
 
-        self.student_optimizer = torch.optim.SGD(self.student_model.parameters(), lr=0.1, momentum=0.9, weight_decay=5e-4, nesterov=True)
-        self.scheduler = optim.lr_scheduler.MultiStepLR(self.student_optimizer, milestones=[0.3*self.num_epochs - 1,0.6*self.num_epochs - 1,0.8*self.num_epochs - 1], gamma=0.2)
+        self.student_optimizer = torch.optim.SGD(self.student_model.parameters(), lr=0.1, momentum=0.9,
+                                                 weight_decay=5e-4, nesterov=True)
+        self.scheduler = optim.lr_scheduler.MultiStepLR(self.student_optimizer, milestones=[0.3 * self.num_epochs - 1,
+                                                                                            0.6 * self.num_epochs - 1,
+                                                                                            0.8 * self.num_epochs - 1],
+                                                        gamma=0.2)
 
     def train_KT_AT(self):
         # summary for current training loop and a running average object for loss
         # Use tqdm for progress bar
         accuracy_dict = {}
-
 
         for epoch in tqdm(range(self.num_epochs), total=self.num_epochs):
             self.student_model.train()
@@ -121,14 +126,15 @@ class FewShotKT:
 
             # teacher/student outputs: logits, attention1, attention2, attention3
 
-            loss = utils.KL_AT_loss(teacher_logits, student_logits, student_activations, teacher_activations, labels_batch)
+            loss = utils.KL_AT_loss(teacher_logits, student_logits, student_activations, teacher_activations,
+                                    labels_batch)
             loss.backward()
 
             running_loss += loss.data
             running_acc += utils.accuracy(student_logits.data, labels_batch)
-            #writeMetrics({"accuracy": running_acc/(batch_num+1),
-             #             "loss": running_loss/(batch_num+1)}, self.counter)
-            self.counter +=1
+            # writeMetrics({"accuracy": running_acc/(batch_num+1),
+            #             "loss": running_loss/(batch_num+1)}, self.counter)
+            self.counter += 1
 
             # performs updates using calculated gradients
             self.student_optimizer.step()
@@ -149,11 +155,11 @@ class FewShotKT:
                 data, label = data.to(self.device), label.to(self.device)
 
                 student_logits, *student_activations = self.student_model(data)
-               
+
                 running_acc += utils.accuracy(student_logits.data, label)
 
-        print(f"Test accuracy: {running_acc/len(self.testloader)}")
-        return (running_acc/len(self.testloader))
+        print(f"Test accuracy: {running_acc / len(self.testloader)}")
+        return running_acc / len(self.testloader)
 
     def save_model(self):
         torch.save(self.student_model.state_dict(), self.student_save_path)

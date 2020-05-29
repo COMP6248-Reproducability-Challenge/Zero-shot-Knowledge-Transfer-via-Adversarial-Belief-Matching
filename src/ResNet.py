@@ -3,11 +3,11 @@ Code adapted from https://github.com/polo5/ZeroShotKnowledgeTransfer/blob/master
 """
 
 import math
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.utils.data import DataLoader
-from torchbearer import Trial
+
 
 class BasicBlock(nn.Module):
     def __init__(self, in_planes, out_planes, stride, dropRate):
@@ -37,6 +37,7 @@ class BasicBlock(nn.Module):
 
         return torch.add(x if self.equalInOut else self.convShortcut(x), out)
 
+
 class NetworkBlock(nn.Module):
     def __init__(self, nb_layers, in_planes, out_planes, block, stride, dropRate):
         super(NetworkBlock, self).__init__()
@@ -51,11 +52,12 @@ class NetworkBlock(nn.Module):
     def forward(self, x):
         return self.layer(x)
 
+
 class WideResNet(nn.Module):
     def __init__(self, depth, num_classes, widen_factor, input_features, output_features, dropRate, strides):
         super(WideResNet, self).__init__()
-        nChannels = [output_features, 16*widen_factor, 32*widen_factor, 64*widen_factor]
-        assert((depth - 4) % 6 == 0)
+        nChannels = [output_features, 16 * widen_factor, 32 * widen_factor, 64 * widen_factor]
+        assert ((depth - 4) % 6 == 0)
         n = (depth - 4) / 6
         block = BasicBlock
         # 1st conv before any network block
@@ -91,5 +93,5 @@ class WideResNet(nn.Module):
         out = self.relu(self.bn1(activation3))
         out = F.avg_pool2d(out, 8)
         out = out.view(-1, self.nChannels)
-        
+
         return self.fc(out), activation1, activation2, activation3
