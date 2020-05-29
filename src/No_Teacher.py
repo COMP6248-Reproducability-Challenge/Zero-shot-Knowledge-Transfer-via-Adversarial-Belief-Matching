@@ -23,7 +23,7 @@ class No_teacher:
         self.model_type = config.model_type
 
         if self.model_type == "rnn":
-            self.model = utils.load_student_rnn()
+            self.model = utils.load_student_rnn(self.num_classes)
             
             if config.downsample['action']:
                 self.save_path = f"{config.save_path}/{self.dataset}-{config.mode}-wrn-{config.student_rnn['depth']}-{config.student_rnn['widen_factor']}-{config.student_rnn['dropRate']}-down_sample{config.downsample['value']}-seed{config.seed}.pth"

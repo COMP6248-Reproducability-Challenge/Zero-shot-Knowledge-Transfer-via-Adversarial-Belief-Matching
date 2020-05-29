@@ -15,8 +15,8 @@ def setup_seeds(seed):
     torch.manual_seed(seed)
     torch.backends.cudnn.deterministic = True
 
-def load_teacher_rnn():
-    teacher = ResNet.WideResNet(depth=config.teacher_rnn['depth'], num_classes=self.num_classes,
+def load_teacher_rnn(num_classes):
+    teacher = ResNet.WideResNet(depth=config.teacher_rnn['depth'], num_classes=num_classes,
                                                widen_factor=config.teacher_rnn['widen_factor'],
                                                input_features=config.teacher_rnn['input_features'],
                                                output_features=config.teacher_rnn['output_features'],
@@ -25,8 +25,8 @@ def load_teacher_rnn():
     
     return teacher
 
-def load_student_rnn():
-    student = ResNet.WideResNet(depth=config.student_rnn['depth'], num_classes=self.num_classes,
+def load_student_rnn(num_classes):
+    student = ResNet.WideResNet(depth=config.student_rnn['depth'], num_classes=num_classes,
                                                widen_factor=config.student_rnn['widen_factor'],
                                                input_features=config.student_rnn['input_features'],
                                                output_features=config.student_rnn['output_features'],
