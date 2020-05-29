@@ -1,4 +1,6 @@
-# COMP6248 Reproducibility Project
+# Zero-shot-Knowledge-Transfer-via-Adversarial-Belief-Matching 
+
+COMP6248 Reproducibility Project
 
 ## About
 
@@ -7,7 +9,7 @@ One of the challenges in machine learning research is to ensure that published r
 
 
 ## Implementation
-Wide Residual Nets (WRNs) are used for both the teacher and the student networks in the few-shot and zero-shot algorithms. For the implementation of such networks, we opted to use the authors' code with slight adaptations. Everything was implemented on our own including Zero-Shot, KD+AT and adversarial belief matching.
+Wide Residual Nets (WRNs) are used for both the teacher and the student networks in the few-shot and zero-shot algorithms. For the implementation of such networks, we opted to use the authors' code with slight adaptations. Everything other than WRN and the generator was implemented on our own including Zero-Shot, KD+AT and adversarial belief matching.
 
 
 ## Experimentation
