@@ -19,17 +19,15 @@ class No_teacher:
         self.model_type = config.model_type
 
         if self.model_type == "rnn":
-            self.model = ResNet.WideResNet(depth=config.teacher_rnn['depth'], num_classes=self.num_classes, widen_factor=config.teacher_rnn['widen_factor'], 
-                    input_features=config.teacher_rnn['input_features'], output_features=config.teacher_rnn['output_features'], 
-                    dropRate=config.teacher_rnn['dropRate'], strides=config.teacher_rnn['strides'])
+            self.model = utils.load_student_rnn()
             
             if config.downsample['action']:
-                self.save_path = f"{config.save_path}/{self.dataset}-{config.mode}-wrn-{config.teacher_rnn['depth']}-{config.teacher_rnn['widen_factor']}-{config.teacher_rnn['dropRate']}-down_sample{config.downsample['value']}-seed{config.seed}.pth"
+                self.save_path = f"{config.save_path}/{self.dataset}-{config.mode}-wrn-{config.student_rnn['depth']}-{config.student_rnn['widen_factor']}-{config.student_rnn['dropRate']}-down_sample{config.downsample['value']}-seed{config.seed}.pth"
             else:
-                self.save_path = f"{config.save_path}/{self.dataset}-{config.mode}-wrn-{config.teacher_rnn['depth']}-{config.teacher_rnn['widen_factor']}-{config.teacher_rnn['dropRate']}-seed{config.seed}.pth"
+                self.save_path = f"{config.save_path}/{self.dataset}-{config.mode}-wrn-{config.student_rnn['depth']}-{config.student_rnn['widen_factor']}-{config.student_rnn['dropRate']}-seed{config.seed}.pth"
         
         elif self.model_type == "efficient_net":
-            self.model = EfficientNet.EfficientNet(config.teacher_efficient_net['input_features'], config.teacher_efficient_net['model'])
+            self.model = EfficientNet.EfficientNet(config.student_efficient_net['input_features'], config.student_efficient_net['model'])
 
             if config.downsample['action']:
                 self.save_path = f"{config.save_path}/{self.dataset}-{config.mode}-efficient_net-down_sample{config.downsample['value']}-seed{config.seed}.pth"
@@ -43,7 +41,7 @@ class No_teacher:
             print(f"Using {torch.cuda.device_count()} GPUs")
             self.model = nn.DataParallel(self.model)
         else:
-            print(f"Using {self.device}!")
+            print(f"Using {self.device}")
         
         self.model.to(self.device)
     
