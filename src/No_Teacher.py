@@ -5,7 +5,6 @@ import torch.nn as nn
 from tqdm import tqdm
 
 import EfficientNet
-import ResNet
 import config
 import dataloaders
 import utils
