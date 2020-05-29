@@ -3,7 +3,6 @@ import numpy as np
 import torch
 from tqdm import tqdm
 import utils
-import ResNet
 from torch import optim
 from dataloaders import transform_data
 import Generator
