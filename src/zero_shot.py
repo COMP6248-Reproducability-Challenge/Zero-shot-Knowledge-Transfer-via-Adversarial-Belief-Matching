@@ -1,15 +1,14 @@
-import logging
-import numpy as np
-import torch
-from tqdm import tqdm
-import utils
-from torch import optim
-from dataloaders import transform_data
-import Generator
 import os
+
+import torch
+from torch import optim
+from tqdm import tqdm
+
+import EfficientNet
+import Generator
 import config
 import dataloaders
-import EfficientNet
+import utils
 
 
 class ZeroShot:
@@ -39,15 +38,16 @@ class ZeroShot:
                 raise ValueError('No file with the pretrained model selected')
 
             self.teacher_model.load_state_dict(checkpoint)
-            
+
             self.student_model = utils.load_student_rnn(self.num_classes)
             if config.downsample['action']:
                 self.student_save_path = f"{config.save_path}/{self.dataset}-{config.mode}-wrn_student-{config.teacher_rnn['depth']}-{config.teacher_rnn['widen_factor']}-{config.student_rnn['depth']}-{config.student_rnn['widen_factor']}-{config.student_rnn['dropRate']}-down_sample{config.downsample['value']}-seed{config.seed}.pth"
             else:
                 self.student_save_path = f"{config.save_path}/{self.dataset}-{config.mode}-wrn_student-{config.teacher_rnn['depth']}-{config.teacher_rnn['widen_factor']}-{config.student_rnn['depth']}-{config.student_rnn['widen_factor']}-{config.student_rnn['dropRate']}-seed{config.seed}.pth"
-        
+
         elif self.model_type == "efficient_net":
-            self.teacher_model = EfficientNet.EfficientNet(config.teacher_efficient_net['input_features'], config.teacher_efficient_net['model'])
+            self.teacher_model = EfficientNet.EfficientNet(config.teacher_efficient_net['input_features'],
+                                                           config.teacher_efficient_net['model'])
 
             teacher_path = f"{config.save_path}/{self.dataset}-no_teacher-efficient_net-seed{config.seed}.pth"
 
@@ -57,8 +57,9 @@ class ZeroShot:
                 raise ValueError('No file with the pretrained model selected')
 
             self.teacher_model.load_state_dict(checkpoint)
-            
-            self.student_model = EfficientNet.EfficientNet(config.student_efficient_net['input_features'], config.student_efficient_net['model'])
+
+            self.student_model = EfficientNet.EfficientNet(config.student_efficient_net['input_features'],
+                                                           config.student_efficient_net['model'])
 
             if config.downsample['action']:
                 self.student_save_path = f"{config.save_path}/{self.dataset}-{config.mode}-efficient_net_student-down_sample{config.downsample['value']}-seed{config.seed}.pth"
@@ -67,7 +68,6 @@ class ZeroShot:
         else:
             raise ValueError('Invalid model type')
 
-        
         self.teacher_model.to(self.device)
         self.teacher_model.eval()
         self.student_model.to(self.device)
@@ -84,7 +84,6 @@ class ZeroShot:
         self.cosine_annealing_generator = optim.lr_scheduler.CosineAnnealingLR(self.generator_optimizer,
                                                                                self.num_epochs)
 
-        
         self.generator_save_path = f"{config.save_path}/{self.dataset}-{config.mode}-generator-seed{config.seed}.pth"
 
     def train(self):
@@ -163,7 +162,7 @@ class ZeroShot:
 
         Returns:
             {int} -- Accuracy on test data
-        """        
+        """
         if test == True:
             if os.path.exists(self.student_save_path):
                 checkpoint = torch.load(self.student_save_path, map_location=self.device)
@@ -173,7 +172,7 @@ class ZeroShot:
             self.student_model.load_state_dict(checkpoint)
         self.student_model.eval()
 
-        running_acc =  0
+        running_acc = 0
 
         with torch.no_grad():
             for data, label in self.testloader:
@@ -187,10 +186,9 @@ class ZeroShot:
 
         if test == True:
             print(f"Test accuracy = {final_accuracy}")
-        
+
         return final_accuracy
 
     def save_model(self):
         torch.save(self.student_model.state_dict(), self.student_save_path)
         torch.save(self.generator.state_dict(), self.generator_save_path)
-

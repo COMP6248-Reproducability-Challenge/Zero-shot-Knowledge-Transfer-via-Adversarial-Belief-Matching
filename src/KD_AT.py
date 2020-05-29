@@ -89,7 +89,7 @@ class FewShotKT:
             self.train()
 
             if epoch % self.log_num == 0:
-                acc = self.test(epoch)
+                acc = self.test()
                 accuracy_dict[epoch] = acc
                 utils.log_accuracy("KD_AT.csv", accuracy_dict)
                 print(f"\nAccuracy: {acc:05.3f}")
@@ -126,11 +126,8 @@ class FewShotKT:
             # performs updates using calculated gradients
             self.student_optimizer.step()
 
-    def test(self, epoch, test=False):
+    def test(self, test=False):
         """Runs the model on test data.
-
-        Arguments:
-            epoch {int} -- Current Epoch
 
         Keyword Arguments:
             test {bool} -- If it is being used in Test Mode. If so it needs to load the model from memory (default: {False})

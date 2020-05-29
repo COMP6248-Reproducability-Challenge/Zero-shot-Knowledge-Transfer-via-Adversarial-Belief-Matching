@@ -5,6 +5,7 @@ from torch.utils.data import DataLoader, Subset
 from torch.utils.data.dataset import random_split
 from torchvision.datasets import CIFAR10
 
+
 def transform_data(dataset, M=0, train_batch_size=128, test_batch_size=10, validation=False, down=False):
     """Gets data from the selected dataset and puts it into DataLoaders, with the option of 
     downsampling the data with M samples per class.
@@ -142,5 +143,5 @@ def downsample(dataset, M):
                 samples_index.append(inx)
 
     data_subset = Subset(dataset, samples_index)
-    
+
     return data_subset

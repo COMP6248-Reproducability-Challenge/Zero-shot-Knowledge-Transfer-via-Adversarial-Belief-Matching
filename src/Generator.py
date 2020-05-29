@@ -1,19 +1,18 @@
 # Background from https://blog.usejournal.com/train-your-first-gan-model-from-scratch-using-pytorch-9b72987fd2c0
 # based on documentation of page https://github.com/polo5/ZeroShotKnowledgeTransfer/blob/master/models/generator.py
 
-import torch
 import torch.nn as nn
-import torch.nn.functional as F
+
 
 class Generator(nn.Module):
 
     def __init__(self, input_dim):
         super(Generator, self).__init__()
-        self.linear = nn.Linear(input_dim, 128*8**2)
+        self.linear = nn.Linear(input_dim, 128 * 8 ** 2)
         self.activation = nn.LeakyReLU(0.2, inplace=True)
         self.norm = nn.BatchNorm2d(128)
         self.upsample = nn.Upsample(scale_factor=2)
-        
+
         self.layers = nn.Sequential(
             self.norm,
             self.upsample,
@@ -35,5 +34,5 @@ class Generator(nn.Module):
             - that returns noised based x
         """
         out = self.linear(x)
-        out = out.view((-1,128,8,8))
+        out = out.view((-1, 128, 8, 8))
         return self.layers(out)

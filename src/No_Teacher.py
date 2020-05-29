@@ -23,14 +23,15 @@ class No_teacher:
 
         if self.model_type == "rnn":
             self.model = utils.load_student_rnn(self.num_classes)
-            
+
             if config.downsample['action']:
                 self.save_path = f"{config.save_path}/{self.dataset}-{config.mode}-wrn-{config.student_rnn['depth']}-{config.student_rnn['widen_factor']}-{config.student_rnn['dropRate']}-down_sample{config.downsample['value']}-seed{config.seed}.pth"
             else:
                 self.save_path = f"{config.save_path}/{self.dataset}-{config.mode}-wrn-{config.student_rnn['depth']}-{config.student_rnn['widen_factor']}-{config.student_rnn['dropRate']}-seed{config.seed}.pth"
-        
+
         elif self.model_type == "efficient_net":
-            self.model = EfficientNet.EfficientNet(config.student_efficient_net['input_features'], config.student_efficient_net['model'])
+            self.model = EfficientNet.EfficientNet(config.student_efficient_net['input_features'],
+                                                   config.student_efficient_net['model'])
 
             if config.downsample['action']:
                 self.save_path = f"{config.save_path}/{self.dataset}-{config.mode}-efficient_net-down_sample{config.downsample['value']}-seed{config.seed}.pth"
@@ -45,7 +46,7 @@ class No_teacher:
             self.model = nn.DataParallel(self.model)
         else:
             print(f"Using {self.device}")
-        
+
         self.model.to(self.device)
 
     def train(self):

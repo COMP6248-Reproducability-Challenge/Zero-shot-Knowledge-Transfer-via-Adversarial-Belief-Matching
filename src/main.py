@@ -1,12 +1,12 @@
-import No_Teacher
-import zero_shot
-import KD_AT
-import argparse
-import utils
-import config
 import os
 import pathlib
+
+import KD_AT
+import No_Teacher
 import belief_match
+import config
+import utils
+import zero_shot
 
 if __name__ == "__main__":
     utils.setup_seeds(config.seed)
@@ -33,10 +33,6 @@ if __name__ == "__main__":
             kd_at = KD_AT.FewShotKT()
             if not config.test_mode:
                 kd_at.train_KT_AT()
-            kd_at.test(1, test=True)
+            kd_at.test(test=True)
         else:
             raise ValueError('Not valid mode')
-
-
-
-
